@@ -1,0 +1,11 @@
+{
+  "$schema": "./schemas/pi-di18n.extension.schema.json",
+  "contractVersion": 1,
+  "capability": "pi.i18n.v1",
+  "provider": "pi-di18n",
+  "apiVersion": "1.x",
+  "detection": {
+    "requestEvent": "pi-core/i18n/requestApi",
+    "registerBundleEvent": "pi-core/i18n/registerBundle"
+  }
+}

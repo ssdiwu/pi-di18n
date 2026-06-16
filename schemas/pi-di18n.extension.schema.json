@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/pi-di18n.extension.schema.json",
+  "title": "pi-di18n Extension Capability Manifest v1",
+  "type": "object",
+  "required": ["contractVersion", "capability", "provider", "apiVersion", "detection"],
+  "properties": {
+    "contractVersion": { "type": "integer", "enum": [1] },
+    "capability": { "type": "string", "enum": ["pi.i18n.v1"] },
+    "provider": { "type": "string", "minLength": 1 },
+    "apiVersion": { "type": "string", "minLength": 1 },
+    "detection": {
+      "type": "object",
+      "required": ["requestEvent", "registerBundleEvent"],
+      "properties": {
+        "requestEvent": { "type": "string" },
+        "registerBundleEvent": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,33 @@
+# pi-di18n Agent 规范
+
+## 项目定位
+
+`pi-di18n` = `pi-i18n` 接手演进 + `pi-compaction-i18n` 摘要本地化整合。
+
+必须保留 core-hacks。TUI 全量 i18n（含按钮文字、selector、slash 命令描述）是本项目核心目标，不允许绕开 core-hacks 另起轻量方案。
+
+## 关键约束
+
+- 目标 pi 版本基线：`@earendil-works/pi-coding-agent` 0.79.x。
+- 依赖 scope 使用 `@earendil-works/*`，不要新增 `@mariozechner/*` 依赖。
+- `pi-i18n/requestApi` 与 `pi-core/i18n/requestApi` 是兼容事件名，保留不改。
+- `locale` 真相源由 `/lang` 和 `I18nRegistry` 管理；compaction 模块从 `i18n.getLocale()` 接收 locale，不再独立检测环境变量。
+- core-hacks 是 best-effort patch，每次 pi 升级必须复测。
+
+## 验证要求
+
+改动后至少运行：
+
+```bash
+npm test
+npm pack --dry-run
+```
+
+涉及 TUI patch、slash 命令、core-hacks 时，还需要在真实 pi 会话中运行：
+
+```text
+/lang debug
+/lang probe
+```
+
+重点观察：`coreDist`、`slashDescMode`、`probe` 的 matched/hit/translated。
