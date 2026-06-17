@@ -34,6 +34,7 @@ describe("extension registration", () => {
 		expect(hooks).toContain("session_start");
 		expect(hooks).toContain("session_before_compact");
 		expect(hooks).toContain("session_before_tree");
+		expect(hooks).toContain("before_provider_request");
 		expect(commands).toContain("lang");
 		expect(tools).toEqual(expect.arrayContaining(["read", "bash", "edit", "write", "i18n_get_locale"]));
 		expect(eventHandlers).toContain("pi-i18n/requestApi");

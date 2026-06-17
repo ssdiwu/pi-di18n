@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "zh-CN",
+  "tool": {
+    "read": "读取文件内容。支持文本文件和图片（jpg、png、gif、webp），图片以附件形式发送。文本文件输出截断至 2000 行或 50KB（取先到者）。大文件使用 offset/limit。需要完整文件时，用 offset 持续读取直至完成。",
+    "bash": "在当前工作目录执行 bash 命令。返回 stdout 和 stderr。输出截断至最后 2000 行或 50KB（取先到者）。若被截断，完整输出保存到临时文件。可选提供以秒为单位的 timeout。",
+    "edit": "使用精确文本替换编辑单个文件。每条 edits[].oldText 必须匹配原文件中唯一、不重叠的区域。若两处改动影响同一块或相邻行，合并为一条 edit，不要发出重叠的 edit。不要为了连接远处的改动而包含大量未改动的区域。",
+    "write": "将内容写入文件。文件不存在则创建，存在则覆盖。自动创建父目录。",
+    "grep": "搜索文件内容中的 pattern。返回匹配行及其文件路径和行号。遵守 .gitignore。输出截断至 100 个匹配或 50KB（取先到者）。超长行截断至 500 字符。",
+    "find": "按 glob pattern 搜索文件。返回相对于搜索目录的匹配文件路径。遵守 .gitignore。输出截断至 1000 个结果或 50KB（取先到者）。",
+    "ls": "列出目录内容。返回按字母排序的条目，目录带 '/' 后缀。包含 dotfile。输出截断至 500 个条目或 50KB（取先到者）。"
+  },
+  "param": {
+    "read:path": "要读取的文件路径（相对或绝对）",
+    "read:offset": "开始读取的行号（1-indexed，从 1 开始）",
+    "read:limit": "最多读取的行数",
+    "bash:command": "要执行的 bash 命令",
+    "bash:timeout": "超时时间，单位秒（可选，默认无超时）",
+    "edit:path": "要编辑的文件路径（相对或绝对）",
+    "edit:edits": "一条或多条精确替换。每条 edit 针对原文件匹配，而非增量匹配。不要包含重叠或嵌套的 edit。若两处改动涉及同一块或相邻行，合并为一条 edit。",
+    "write:path": "要写入的文件路径（相对或绝对）",
+    "write:content": "要写入文件的内容",
+    "grep:pattern": "搜索 pattern（regex 或字面字符串）",
+    "grep:path": "要搜索的目录或文件（默认：当前目录）",
+    "grep:glob": "按 glob pattern 筛选文件，如 '*.ts' 或 '**/*.spec.ts'",
+    "grep:ignoreCase": "是否忽略大小写（默认：false）",
+    "grep:literal": "将 pattern 视为字面字符串而非 regex（默认：false）",
+    "grep:context": "每个匹配前后显示的行数（默认：0）",
+    "grep:limit": "最多返回的匹配数（默认：100）",
+    "find:pattern": "匹配文件的 glob pattern，如 '*.ts'、'**/*.json' 或 'src/**/*.spec.ts'",
+    "find:path": "要搜索的目录（默认：当前目录）",
+    "find:limit": "最多返回的结果数（默认：1000）",
+    "ls:path": "要列出的目录（默认：当前目录）",
+    "ls:limit": "最多返回的条目数（默认：500）"
+  }
+}

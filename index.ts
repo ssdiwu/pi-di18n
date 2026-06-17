@@ -21,6 +21,10 @@ import {
 	verifyZhTwCoreHackParity,
 } from "./src/core-hacks";
 import { summarizeForCompaction, summarizeForTree } from "./src/compaction/summarize";
+import { prefetchOnSessionStart, applyOnProviderRequest, commandThink, getThinkDebug } from "./src/think/localize";
+import { loadCache as loadThinkCache } from "./src/think/cache";
+import { loadUiCache, setActiveUiCache, getUiDebug } from "./src/ui-localize/cache";
+import { prefetchUiDescriptionsOnSessionStart } from "./src/ui-localize/localize";
 
 function loadBundle(baseDir: string, rel: string): BundleV1 {
 	const path = join(baseDir, rel);
@@ -34,6 +38,12 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 	// 1) Bootstrap locale from config/env. Actual cwd is only known at session_start,
 	// so we finalize in session_start.
 	const i18n = new I18nRegistry({ locale: "en", fallbackLocale: "en" });
+
+	// B 线（思考语言本地化）缓存：开关状态 + 运行时翻译缓存。默认关（ADR 0002）。
+	const thinkCache = loadThinkCache();
+	// A 线 runtime UI description 缓存：扩展/技能/提示词命令说明，默认不阻塞 UI。
+	const uiCache = loadUiCache();
+	setActiveUiCache(uiCache);
 
 	// Load all shipped locale bundles from ./locales/*.json
 	// Track which locales are shipped for the pi namespace so /lang picker can list them.
@@ -164,6 +174,11 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			applyLocalizedHeader(pi, ctx, i18n as unknown as I18nApi, { warnCoreMismatch });
 		}
 		applyLocalizedFooter(pi, ctx, i18n as unknown as I18nApi);
+
+		// A 线：异步预翻译 runtime command descriptions（不阻塞 session_start）。
+		prefetchUiDescriptionsOnSessionStart(pi, ctx, i18n as unknown as I18nApi, uiCache);
+		// B 线：异步预翻译 tool/param description（不阻塞 session_start）。传 ctx 拿 model。
+		prefetchOnSessionStart(pi, ctx, i18n as unknown as I18nApi, thinkCache);
 
 		// warn if RTL selected
 		if ((i18n as any).isRtlSelected?.()) {
@@ -496,6 +511,8 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			`slashDescMode=${mode.mode}${mode.reason ? ` reason=${mode.reason}` : ""}`,
 			`coreDist=${core.distDir ?? "<not found>"}${core.reason ? ` reason=${core.reason}` : ""}`,
 			`probe.enabled=${probe.enabled} total=${probe.summary.total} matched=${probe.summary.matched} notFound=${probe.summary.notFound} hit=${probe.summary.hit} translated=${probe.summary.translated}`,
+			getThinkDebug(thinkCache, i18n as unknown as I18nApi),
+			getUiDebug(i18n.getLocale(), uiCache),
 			`cwd=${ctx.cwd}`,
 		];
 		ctx.ui.notify(lines.join("\n"), mode.mode === "fallback" ? "warning" : "info");
@@ -638,12 +655,26 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			await commandSetup(rest, ctx);
 			return true;
 		}
+		if (sub === "think") {
+			await commandThink(rest, { ...ctx, getAllTools: () => pi.getAllTools() }, i18n as unknown as I18nApi, thinkCache);
+			return true;
+		}
 		if (sub === "demo") {
 			await commandDemo(rest, ctx);
 			return true;
 		}
 		return false;
 	}
+
+	// ── B 线：before_provider_request 替换 LLM 读到的 description ──────
+	pi.on("before_provider_request", async (event: any, ctx: any) => {
+		try {
+			return await applyOnProviderRequest(event, ctx, i18n as unknown as I18nApi, thinkCache);
+		} catch {
+			// 替换失败不阻塞主对话（description 回退英文）
+			return undefined;
+		}
+	});
 
 	// ── 摘要本地化（整合自 pi-compaction-i18n）─────────────────────────
 	// locale 复用 i18n.getLocale()，与 /lang 语言选择共享真相源。

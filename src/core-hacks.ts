@@ -5,6 +5,8 @@ import { getProbeSnapshot, probeHit, probeHook, resetProbe, setProbeEnabled } fr
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { resolveRuntimeCommandDescription } from "./ui-localize/localize";
+import { getActiveUiCache } from "./ui-localize/cache";
 
 const g = globalThis as any;
 const STATE_KEY = "__pi_i18n_core_hacks__";
@@ -1281,13 +1283,20 @@ function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 
 	// Prefer key-based translation by command name.
 	// Command names are stable identifiers; descriptions can change across versions.
-	const name = typeof item?.value === "string" ? (item.value as string) : typeof item?.label === "string" ? (item.label as string) : "";
+	const rawName = typeof item?.name === "string" ? item.name : typeof item?.value === "string" ? (item.value as string) : typeof item?.label === "string" ? (item.label as string) : "";
+	const name = rawName.replace(/^\//, "").split(/\s+/)[0] ?? "";
 	if (name && !name.includes(" ")) {
 		const key = `pi.slash.${name}.description`;
 		const translated = i18n.t(key);
 		if (translated !== key) {
 			return translated;
 		}
+	}
+
+	// Runtime cache for extension/prompt/skill command descriptions.
+	if (name) {
+		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, desc, getActiveUiCache());
+		if (runtime) return runtime;
 	}
 
 	// Fallback: legacy string replacement (zh-TW only). Kept for older bundles.
@@ -1693,7 +1702,7 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 					const result = orig.call(this, cmd);
 					try {
 						const api = getCurrentI18n();
-						if (api) localizeTextTree(this.statusContainer, api);
+						if (api) localizeTextTree(this.chatContainer, api);
 					} catch {
 						// ignore
 					}
@@ -1705,7 +1714,7 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 					const result = orig.apply(this, args as any);
 					try {
 						const api = getCurrentI18n();
-						if (api) localizeTextTree(this.statusContainer, api);
+						if (api) localizeTextTree(this.chatContainer, api);
 					} catch {
 						// ignore
 					}

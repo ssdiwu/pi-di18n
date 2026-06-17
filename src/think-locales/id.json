@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "id",
+  "tool": {
+    "read": "Membaca isi file. Mendukung file teks dan gambar (jpg, png, gif, webp). Gambar dikirim sebagai lampiran. Untuk file teks, output dipotong menjadi 2000 baris atau 50 KB (mana yang lebih dulu tercapai). Gunakan offset/limit untuk file besar. Saat membutuhkan seluruh file, lanjutkan membaca dengan offset hingga selesai.",
+    "bash": "Menjalankan perintah bash di direktori kerja saat ini. Mengembalikan stdout dan stderr. Output dipotong menjadi 2000 baris terakhir atau 50 KB (mana yang lebih dulu tercapai). Jika dipotong, seluruh output disimpan ke file sementara. Secara opsional dapat menyediakan timeout dalam detik.",
+    "edit": "Mengedit satu file menggunakan penggantian teks yang persis. Setiap edits[].oldText harus cocok dengan region unik dan tidak tumpang tindih dari file asli. Jika dua perubahan memengaruhi blok yang sama atau baris berdekatan, gabungkan menjadi satu edit alih-alih mengeluarkan edit yang tumpang tindih. Jangan menyertakan region besar yang tidak berubah hanya untuk menghubungkan perubahan yang berjauhan.",
+    "write": "Menulis konten ke file. Membuat file jika tidak ada, menimpa jika sudah ada. Membuat direktori induk secara otomatis.",
+    "grep": "Mencari pattern dalam isi file. Mengembalikan baris yang cocok beserta path file dan nomor baris. Mematuhi .gitignore. Output dipotong menjadi 100 kecocokan atau 50 KB (mana yang lebih dulu tercapai). Baris panjang dipotong menjadi 500 karakter.",
+    "find": "Mencari file berdasarkan glob pattern. Mengembalikan path file yang cocok relatif terhadap direktori pencarian. Mematuhi .gitignore. Output dipotong menjadi 1000 hasil atau 50 KB (mana yang lebih dulu tercapai).",
+    "ls": "Membaca isi direktori. Mengembalikan entri yang diurutkan menurut abjad, dengan akhiran '/' untuk direktori. Termasuk dotfile. Output dipotong menjadi 500 entri atau 50 KB (mana yang lebih dulu tercapai)."
+  },
+  "param": {
+    "read:path": "Path file yang dibaca (relatif atau absolut)",
+    "read:offset": "Nomor baris untuk mulai membaca (1-indexed, mulai dari 1)",
+    "read:limit": "Jumlah maksimum baris yang dibaca",
+    "bash:command": "Perintah bash yang dijalankan",
+    "bash:timeout": "Timeout dalam detik (opsional, default tanpa timeout)",
+    "edit:path": "Path file yang diedit (relatif atau absolut)",
+    "edit:edits": "Satu atau lebih penggantian yang ditargetkan. Setiap edit dicocokkan dengan file asli, bukan secara inkremental. Jangan menyertakan edit yang tumpang tindih atau bersarang. Jika dua perubahan menyangkut blok yang sama atau baris berdekatan, gabungkan menjadi satu edit.",
+    "write:path": "Path file yang ditulis (relatif atau absolut)",
+    "write:content": "Konten yang ditulis ke file",
+    "grep:pattern": "pattern pencarian (regex atau string literal)",
+    "grep:path": "Direktori atau file yang dicari (default: direktori saat ini)",
+    "grep:glob": "Memfilter file berdasarkan glob pattern, mis. '*.ts' atau '**/*.spec.ts'",
+    "grep:ignoreCase": "Pencarian tanpa membedakan huruf besar/kecil (default: false)",
+    "grep:literal": "Memperlakukan pattern sebagai string literal alih-alih regex (default: false)",
+    "grep:context": "Jumlah baris yang ditampilkan sebelum dan sesudah setiap kecocokan (default: 0)",
+    "grep:limit": "Jumlah maksimum kecocokan yang dikembalikan (default: 100)",
+    "find:pattern": "glob pattern untuk mencocokkan file, mis. '*.ts', '**/*.json' atau 'src/**/*.spec.ts'",
+    "find:path": "Direktori yang dicari (default: direktori saat ini)",
+    "find:limit": "Jumlah maksimum hasil yang dikembalikan (default: 1000)",
+    "ls:path": "Direktori yang dibaca (default: direktori saat ini)",
+    "ls:limit": "Jumlah maksimum entri yang dikembalikan (default: 500)"
+  }
+}

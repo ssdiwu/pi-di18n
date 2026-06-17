@@ -1,7 +1,7 @@
 {
   "name": "pi-di18n",
   "version": "0.1.0",
-  "description": "pi-di18n：pi 的全量 TUI i18n（接手 pi-i18n 演进）+ 摘要本地化（整合 pi-compaction-i18n）",
+  "description": "pi-di18n: full TUI i18n for pi (continues pi-i18n) plus summary localization (integrates pi-compaction-i18n)",
   "type": "module",
   "license": "MIT",
   "author": "ssdiwu",
@@ -31,7 +31,7 @@
     "locales/*.json",
     "schemas/*.json",
     "i18n.manifest.json",
-    "README.md",
+    "README*.md",
     "LICENSE"
   ],
   "scripts": {

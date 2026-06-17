@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "fr",
+  "tool": {
+    "read": "Lit le contenu d'un fichier. Prend en charge les fichiers texte et les images (jpg, png, gif, webp). Les images sont envoyées en pièce jointe. Pour les fichiers texte, la sortie est tronquée à 2000 lignes ou 50 Ko (selon la première limite atteinte). Utilisez offset/limit pour les gros fichiers. Quand vous avez besoin du fichier complet, continuez à lire avec offset jusqu'au bout.",
+    "bash": "Exécute une commande bash dans le répertoire de travail courant. Renvoie stdout et stderr. La sortie est tronquée aux 2000 dernières lignes ou 50 Ko (selon la première limite atteinte). En cas de troncature, la sortie complète est enregistrée dans un fichier temporaire. Vous pouvez fournir un timeout en secondes (optionnel).",
+    "edit": "Modifie un seul fichier par remplacement exact de texte. Chaque edits[].oldText doit correspondre à une région unique et non chevauchante du fichier original. Si deux modifications affectent le même bloc ou des lignes proches, fusionnez-les en un seul edit au lieu d'émettre des edits chevauchants. N'incluez pas de grandes régions inchangées uniquement pour relier des modifications éloignées.",
+    "write": "Écrit du contenu dans un fichier. Crée le fichier s'il n'existe pas, l'écrase s'il existe. Crée automatiquement les répertoires parents.",
+    "grep": "Recherche un pattern dans le contenu des fichiers. Renvoie les lignes correspondantes avec les chemins de fichiers et numéros de ligne. Respecte .gitignore. La sortie est tronquée à 100 correspondances ou 50 Ko (selon la première limite atteinte). Les lignes longues sont tronquées à 500 caractères.",
+    "find": "Recherche des fichiers selon un glob pattern. Renvoie les chemins des fichiers correspondants, relatifs au répertoire de recherche. Respecte .gitignore. La sortie est tronquée à 1000 résultats ou 50 Ko (selon la première limite atteinte).",
+    "ls": "Liste le contenu d'un répertoire. Renvoie les entrées triées par ordre alphabétique, avec le suffixe '/' pour les répertoires. Inclut les dotfile. La sortie est tronquée à 500 entrées ou 50 Ko (selon la première limite atteinte)."
+  },
+  "param": {
+    "read:path": "Chemin du fichier à lire (relatif ou absolu)",
+    "read:offset": "Numéro de ligne à partir duquel lire (1-indexed, à partir de 1)",
+    "read:limit": "Nombre maximal de lignes à lire",
+    "bash:command": "Commande bash à exécuter",
+    "bash:timeout": "Délai d'attente en secondes (optionnel, aucun délai par défaut)",
+    "edit:path": "Chemin du fichier à modifier (relatif ou absolu)",
+    "edit:edits": "Un ou plusieurs remplacements ciblés. Chaque edit est mis en correspondance avec le fichier original, pas de façon incrémentale. N'incluez pas d'edit chevauchants ou imbriqués. Si deux modifications concernent le même bloc ou des lignes proches, fusionnez-les en un seul edit.",
+    "write:path": "Chemin du fichier à écrire (relatif ou absolu)",
+    "write:content": "Contenu à écrire dans le fichier",
+    "grep:pattern": "pattern de recherche (regex ou chaîne littérale)",
+    "grep:path": "Répertoire ou fichier à rechercher (par défaut : répertoire courant)",
+    "grep:glob": "Filtrer les fichiers par glob pattern, par ex. '*.ts' ou '**/*.spec.ts'",
+    "grep:ignoreCase": "Recherche insensible à la casse (par défaut : false)",
+    "grep:literal": "Traiter pattern comme une chaîne littérale au lieu de regex (par défaut : false)",
+    "grep:context": "Nombre de lignes à afficher avant et après chaque correspondance (par défaut : 0)",
+    "grep:limit": "Nombre maximal de correspondances à renvoyer (par défaut : 100)",
+    "find:pattern": "glob pattern pour correspondre aux fichiers, par ex. '*.ts', '**/*.json' ou 'src/**/*.spec.ts'",
+    "find:path": "Répertoire dans lequel rechercher (par défaut : répertoire courant)",
+    "find:limit": "Nombre maximal de résultats à renvoyer (par défaut : 1000)",
+    "ls:path": "Répertoire à lister (par défaut : répertoire courant)",
+    "ls:limit": "Nombre maximal d'entrées à renvoyer (par défaut : 500)"
+  }
+}

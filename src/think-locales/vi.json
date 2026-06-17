@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "vi",
+  "tool": {
+    "read": "Đọc nội dung tệp. Hỗ trợ tệp văn bản và hình ảnh (jpg, png, gif, webp). Hình ảnh được gửi dưới dạng tệp đính kèm. Với tệp văn bản, đầu ra bị cắt ngắn thành 2000 dòng hoặc 50KB (điều nào đến trước). Với tệp lớn, hãy dùng offset/limit. Khi cần toàn bộ tệp, hãy tiếp tục đọc với offset cho đến khi hoàn tất.",
+    "bash": "Thực thi lệnh bash trong thư mục làm việc hiện tại. Trả về stdout và stderr. Đầu ra bị cắt ngắn thành 2000 dòng cuối hoặc 50KB (điều nào đến trước). Nếu bị cắt ngắn, toàn bộ đầu ra được lưu vào tệp tạm. Có thể cung cấp timeout tính bằng giây.",
+    "edit": "Chỉnh sửa một tệp bằng thay thế văn bản chính xác. Mỗi edits[].oldText phải khớp một vùng duy nhất, không chồng lấn trong tệp gốc. Nếu hai thay đổi ảnh hưởng cùng một khối hoặc các dòng lân cận, hãy gộp thành một edit thay vì phát hành các edit chồng lấn. Không bao gồm các vùng lớn không thay đổi chỉ để nối các thay đổi xa nhau.",
+    "write": "Ghi nội dung vào tệp. Tạo tệp nếu chưa tồn tại, ghi đè nếu đã tồn tại. Tự động tạo thư mục cha.",
+    "grep": "Tìm pattern trong nội dung tệp. Trả về các dòng khớp kèm đường dẫn tệp và số dòng. Tuân thủ .gitignore. Đầu ra bị cắt ngắn thành 100 kết quả khớp hoặc 50KB (điều nào đến trước). Dòng dài bị cắt ngắn thành 500 ký tự.",
+    "find": "Tìm tệp theo glob pattern. Trả về đường dẫn tệp khớp tương đối với thư mục tìm kiếm. Tuân thủ .gitignore. Đầu ra bị cắt ngắn thành 1000 kết quả hoặc 50KB (điều nào đến trước).",
+    "ls": "Liệt kê nội dung thư mục. Trả về các mục được sắp xếp theo bảng chữ cái, với hậu tố '/' cho thư mục. Bao gồm dotfile. Đầu ra bị cắt ngắn thành 500 mục hoặc 50KB (điều nào đến trước)."
+  },
+  "param": {
+    "read:path": "Đường dẫn tệp cần đọc (tương đối hoặc tuyệt đối)",
+    "read:offset": "Số dòng bắt đầu đọc (1-indexed, từ 1)",
+    "read:limit": "Số dòng tối đa cần đọc",
+    "bash:command": "Lệnh bash cần thực thi",
+    "bash:timeout": "Thời gian chờ tính bằng giây (tùy chọn, mặc định không có)",
+    "edit:path": "Đường dẫn tệp cần chỉnh sửa (tương đối hoặc tuyệt đối)",
+    "edit:edits": "Một hoặc nhiều thay thế nhắm mục tiêu. Mỗi edit được khớp với tệp gốc, không phải theo từng bước. Không bao gồm edit chồng lấn hoặc lồng nhau. Nếu hai thay đổi liên quan cùng một khối hoặc các dòng lân cận, hãy gộp thành một edit.",
+    "write:path": "Đường dẫn tệp cần ghi (tương đối hoặc tuyệt đối)",
+    "write:content": "Nội dung cần ghi vào tệp",
+    "grep:pattern": "pattern tìm kiếm (regex hoặc chuỗi literal)",
+    "grep:path": "Thư mục hoặc tệp cần tìm kiếm (mặc định: thư mục hiện tại)",
+    "grep:glob": "Lọc tệp theo glob pattern, ví dụ '*.ts' hoặc '**/*.spec.ts'",
+    "grep:ignoreCase": "Tìm kiếm không phân biệt chữ hoa thường (mặc định: false)",
+    "grep:literal": "Xử lý pattern như chuỗi literal thay vì regex (mặc định: false)",
+    "grep:context": "Số dòng hiển thị trước và sau mỗi kết quả khớp (mặc định: 0)",
+    "grep:limit": "Số kết quả khớp tối đa trả về (mặc định: 100)",
+    "find:pattern": "glob pattern khớp tệp, ví dụ '*.ts', '**/*.json' hoặc 'src/**/*.spec.ts'",
+    "find:path": "Thư mục cần tìm (mặc định: thư mục hiện tại)",
+    "find:limit": "Số kết quả tối đa trả về (mặc định: 1000)",
+    "ls:path": "Thư mục cần liệt kê (mặc định: thư mục hiện tại)",
+    "ls:limit": "Số mục tối đa trả về (mặc định: 500)"
+  }
+}

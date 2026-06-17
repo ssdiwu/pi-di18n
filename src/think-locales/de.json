@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "de",
+  "tool": {
+    "read": "Liest den Inhalt einer Datei. Unterstützt Textdateien und Bilder (jpg, png, gif, webp). Bilder werden als Anhang gesendet. Bei Textdateien wird die Ausgabe auf 2000 Zeilen oder 50 KB (je nachdem, was zuerst eintritt) gekürzt. Verwende offset/limit für große Dateien. Wenn du die gesamte Datei benötigst, lies mit offset weiter, bis sie vollständig ist.",
+    "bash": "Führt einen bash-Befehl im aktuellen Arbeitsverzeichnis aus. Gibt stdout und stderr zurück. Die Ausgabe wird auf die letzten 2000 Zeilen oder 50 KB (je nachdem, was zuerst eintritt) gekürzt. Bei Kürzung wird die vollständige Ausgabe in einer temporären Datei gespeichert. Optional kann ein timeout in Sekunden angegeben werden.",
+    "edit": "Bearbeitet eine einzelne Datei durch exakten Textersatz. Jedes edits[].oldText muss mit einer eindeutigen, nicht überlappenden Region der Originaldatei übereinstimmen. Wenn zwei Änderungen denselben Block oder benachbarte Zeilen betreffen, fasse sie zu einem edit zusammen, statt überlappende edits auszugeben. Füge keine großen unveränderten Bereiche ein, nur um weit entfernte Änderungen zu verbinden.",
+    "write": "Schreibt Inhalt in eine Datei. Erstellt die Datei, wenn sie nicht existiert, überschreibt sie, falls vorhanden. Erstellt automatisch übergeordnete Verzeichnisse.",
+    "grep": "Durchsucht Dateiinhalte nach einem pattern. Gibt übereinstimmende Zeilen mit Dateipfaden und Zeilennummern zurück. Beachtet .gitignore. Die Ausgabe wird auf 100 Treffer oder 50 KB (je nachdem, was zuerst eintritt) gekürzt. Lange Zeilen werden auf 500 Zeichen gekürzt.",
+    "find": "Sucht nach Dateien anhand eines glob pattern. Gibt übereinstimmende Dateipfade relativ zum Suchverzeichnis zurück. Beachtet .gitignore. Die Ausgabe wird auf 1000 Ergebnisse oder 50 KB (je nachdem, was zuerst eintritt) gekürzt.",
+    "ls": "Listet den Inhalt eines Verzeichnisses auf. Gibt alphabetisch sortierte Einträge zurück, mit dem Suffix '/' für Verzeichnisse. Schließt dotfile ein. Die Ausgabe wird auf 500 Einträge oder 50 KB (je nachdem, was zuerst eintritt) gekürzt."
+  },
+  "param": {
+    "read:path": "Pfad der zu lesenden Datei (relativ oder absolut)",
+    "read:offset": "Zeilennummer, ab der gelesen werden soll (1-indexed, ab 1)",
+    "read:limit": "Maximale Anzahl zu lesender Zeilen",
+    "bash:command": "Auszuführender bash-Befehl",
+    "bash:timeout": "Zeitüberschreitung in Sekunden (optional, standardmäßig keine)",
+    "edit:path": "Pfad der zu bearbeitenden Datei (relativ oder absolut)",
+    "edit:edits": "Eine oder mehrere gezielte Ersetzungen. Jedes edit wird gegen die Originaldatei abgeglichen, nicht inkrementell. Füge keine überlappenden oder verschachtelten edits ein. Wenn zwei Änderungen denselben Block oder benachbarte Zeilen betreffen, fasse sie zu einem edit zusammen.",
+    "write:path": "Pfad der zu schreibenden Datei (relativ oder absolut)",
+    "write:content": "Inhalt, der in die Datei geschrieben werden soll",
+    "grep:pattern": "Such-pattern (regex oder literal string)",
+    "grep:path": "Zu durchsuchendes Verzeichnis oder Datei (Standard: aktuelles Verzeichnis)",
+    "grep:glob": "Dateien nach glob pattern filtern, z. B. '*.ts' oder '**/*.spec.ts'",
+    "grep:ignoreCase": "Suche ohne Groß-/Kleinschreibung (Standard: false)",
+    "grep:literal": "pattern als literal string statt als regex behandeln (Standard: false)",
+    "grep:context": "Anzahl der Zeilen, die vor und nach jedem Treffer angezeigt werden (Standard: 0)",
+    "grep:limit": "Maximale Anzahl zurückgegebener Treffer (Standard: 100)",
+    "find:pattern": "glob pattern zum Abgleichen von Dateien, z. B. '*.ts', '**/*.json' oder 'src/**/*.spec.ts'",
+    "find:path": "Zu durchsuchendes Verzeichnis (Standard: aktuelles Verzeichnis)",
+    "find:limit": "Maximale Anzahl zurückgegebener Ergebnisse (Standard: 1000)",
+    "ls:path": "Aufzulistendes Verzeichnis (Standard: aktuelles Verzeichnis)",
+    "ls:limit": "Maximale Anzahl zurückgegebener Einträge (Standard: 500)"
+  }
+}

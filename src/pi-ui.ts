@@ -1,6 +1,6 @@
 import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
 import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint } from "@earendil-works/pi-coding-agent";
-import { Text, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import type { I18nApi } from "./types";
 
 function shorten(s: string, max = 90): string {
@@ -272,28 +272,10 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 	});
 }
 
-export function applyLocalizedFooter(pi: ExtensionAPI, ctx: any, i18n: I18nApi, opts?: { force?: boolean }): void {
+export function applyLocalizedFooter(_pi: ExtensionAPI, ctx: any, i18n: I18nApi, _opts?: { force?: boolean }): void {
 	if (!ctx?.hasUI) return;
 
-	// Avoid stomping on oneliner if present.
-	const hasOneliner = pi.getCommands().some((c) => c.name === "oneliner" || c.name.startsWith("oneliner:"));
-	if (!opts?.force && hasOneliner) return;
-
-	ctx.ui.setFooter((_tui: any, theme: any, footerData: any) => {
-		return {
-			invalidate() {},
-			render(width: number): string[] {
-				const locale = i18n.getLocale();
-				const branch = footerData.getGitBranch();
-				const left = theme.fg("muted", `lang:${localeNativeLabel(locale)}`);
-				const right = branch ? theme.fg("dim", `⎇ ${branch}`) : "";
-				let line = left;
-				if (right) {
-					const spacer = Math.max(1, width - visibleWidth(left) - visibleWidth(right));
-					line = left + " ".repeat(spacer) + right;
-				}
-				return [truncateToWidth(line, width, "")];
-			},
-		};
-	});
+	// Do not override pi's native footer/status bar. It contains model, cwd, token, git,
+	// and worktree status; replacing it with "lang:*" hides important user context.
+	ctx.ui?.notify?.(`lang:${localeNativeLabel(i18n.getLocale())}`, "info");
 }

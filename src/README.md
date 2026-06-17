@@ -11,6 +11,8 @@
 | [probe.ts](./probe.ts) | core-hacks 运行时探针。 |
 | [types.ts](./types.ts) | i18n bundle/API 类型定义。 |
 | [compaction/](./compaction/) | `/compact` 与 `/tree` 摘要本地化。 |
+| [think/](./think/) | B 线：LLM 思考语言本地化。 |
+| [ui-localize/](./ui-localize/) | A 线 runtime UI description 本地化：扩展/技能/提示词命令说明异步翻译与缓存。 |
 | [core-hacks-locales/](./core-hacks-locales/) | core-hacks exact/substring 翻译包。 |
 
 ## 注意
@@ -18,3 +20,4 @@
 - 不要绕开 core-hacks；TUI 全量 i18n 依赖它。
 - `pi-i18n/requestApi` 与 `pi-core/i18n/requestApi` 事件名保持兼容，不因项目改名而改动。
 - compaction locale 必须从 `i18n.getLocale()` 传入，避免 TUI 与摘要语言不一致。
+- A 线 runtime UI localizer 只翻用户可见 command/autocomplete description；不要混用 B 线 `/lang think` 的 LLM-facing payload 翻译。

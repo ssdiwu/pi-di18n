@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "es",
+  "tool": {
+    "read": "Lee el contenido de un archivo. Admite archivos de texto e imágenes (jpg, png, gif, webp). Las imágenes se envían como adjuntos. Para archivos de texto, la salida se trunca a 2000 líneas o 50 KB (lo que ocurra primero). Usa offset/limit para archivos grandes. Cuando necesites el archivo completo, continúa leyendo con offset hasta terminar.",
+    "bash": "Ejecuta un comando bash en el directorio de trabajo actual. Devuelve stdout y stderr. La salida se trunca a las últimas 2000 líneas o 50 KB (lo que ocurra primero). Si se trunca, la salida completa se guarda en un archivo temporal. Opcionalmente puedes indicar timeout en segundos.",
+    "edit": "Edita un único archivo mediante reemplazo exacto de texto. Cada edits[].oldText debe coincidir con una región única y no superpuesta del archivo original. Si dos cambios afectan al mismo bloque o líneas cercanas, combínalos en un solo edit en lugar de emitir edits superpuestos. No incluyas grandes regiones sin cambios solo para conectar cambios distantes.",
+    "write": "Escribe contenido en un archivo. Crea el archivo si no existe y lo sobrescribe si existe. Crea automáticamente los directorios padre.",
+    "grep": "Busca un pattern en el contenido de los archivos. Devuelve las líneas coincidentes con la ruta del archivo y el número de línea. Respeta .gitignore. La salida se trunca a 100 coincidencias o 50 KB (lo que ocurra primero). Las líneas largas se truncan a 500 caracteres.",
+    "find": "Busca archivos por glob pattern. Devuelve las rutas de archivos coincidentes relativas al directorio de búsqueda. Respeta .gitignore. La salida se trunca a 1000 resultados o 50 KB (lo que ocurra primero).",
+    "ls": "Lista el contenido de un directorio. Devuelve entradas ordenadas alfabéticamente, con sufijo '/' para los directorios. Incluye dotfile. La salida se trunca a 500 entradas o 50 KB (lo que ocurra primero)."
+  },
+  "param": {
+    "read:path": "Ruta del archivo a leer (relativa o absoluta)",
+    "read:offset": "Número de línea desde el que empezar a leer (1-indexed, desde 1)",
+    "read:limit": "Número máximo de líneas a leer",
+    "bash:command": "Comando bash a ejecutar",
+    "bash:timeout": "Tiempo de espera en segundos (opcional, sin tiempo de espera por defecto)",
+    "edit:path": "Ruta del archivo a editar (relativa o absoluta)",
+    "edit:edits": "Uno o más reemplazos dirigidos. Cada edit se compara con el archivo original, no de forma incremental. No incluyas edits superpuestos o anidados. Si dos cambios afectan al mismo bloque o líneas cercanas, combínalos en un solo edit.",
+    "write:path": "Ruta del archivo a escribir (relativa o absoluta)",
+    "write:content": "Contenido a escribir en el archivo",
+    "grep:pattern": "Pattern de búsqueda (regex o cadena literal)",
+    "grep:path": "Directorio o archivo donde buscar (predeterminado: directorio actual)",
+    "grep:glob": "Filtra archivos por glob pattern, p. ej. '*.ts' o '**/*.spec.ts'",
+    "grep:ignoreCase": "Búsqueda sin distinguir mayúsculas y minúsculas (predeterminado: false)",
+    "grep:literal": "Tratar pattern como cadena literal en lugar de regex (predeterminado: false)",
+    "grep:context": "Número de líneas a mostrar antes y después de cada coincidencia (predeterminado: 0)",
+    "grep:limit": "Número máximo de coincidencias a devolver (predeterminado: 100)",
+    "find:pattern": "glob pattern para coincidir archivos, p. ej. '*.ts', '**/*.json' o 'src/**/*.spec.ts'",
+    "find:path": "Directorio donde buscar (predeterminado: directorio actual)",
+    "find:limit": "Número máximo de resultados a devolver (predeterminado: 1000)",
+    "ls:path": "Directorio a listar (predeterminado: directorio actual)",
+    "ls:limit": "Número máximo de entradas a devolver (predeterminado: 500)"
+  }
+}

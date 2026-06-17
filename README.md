@@ -1,57 +1,126 @@
 # pi-di18n
 
-`pi-di18n` 是 pi 的本地化扩展：接手 `pi-i18n` 的 TUI i18n / core-hacks 路线，并整合 `pi-compaction-i18n` 的 `/compact` 与 `/tree` 摘要本地化能力。
+[English](./README.md) | [简体中文](./README-zh.md) | [日本語](./README-ja.md) | [한국어](./README-ko.md)
 
-## 功能
+`pi-di18n` is the localization extension for [pi](https://github.com/earendil-works/pi-coding-agent). It continues the full TUI i18n and `core-hacks` line from `pi-i18n`, integrates summary localization from `pi-compaction-i18n`, and adds LLM-facing tool-description localization through `/lang think`.
 
-- **TUI 本地化**：保留 core-hacks，运行时 patch pi 内部渲染路径，覆盖按钮文字、selector、状态/警告/错误、slash 命令描述等高影响 UI 表面。
-- **slash 命令描述修复**：补齐 pi 0.79 内置 slash 命令的 `pi.slash.<name>.description` bundle key，修复 zh-CN 下 `slashDescMode=none` 的历史问题。
-- **摘要本地化**：整合 `pi-compaction-i18n`，接管 `session_before_compact` 与 `session_before_tree`，让压缩摘要和分支摘要跟随 `/lang` 当前 locale 输出。
-- **扩展 i18n API**：保留 `pi-i18n/requestApi` 与 `pi-core/i18n/requestApi` 兼容事件，供其他扩展请求翻译 API。
+## What It Localizes
 
-## 安装
+`pi-di18n` has three localization lines:
 
-发布后使用 pi 安装：
+| Line | Audience | Scope |
+|------|----------|-------|
+| A-line: TUI localization | Human user | Buttons, selectors, status/warning/error messages, slash-command descriptions, session selector text |
+| B-line: thinking localization | LLM | Tool and parameter `description` strings sent in provider payloads |
+| C-line: summary localization | Human user | `/compact` and `/tree` summaries |
+
+## Features
+
+- **Full TUI localization** — keeps `core-hacks` to runtime-patch pi internal render paths, covering UI labels, selectors, status messages, and built-in slash-command descriptions.
+- **Slash-command description fix** — ships `pi.slash.<name>.description` bundle keys for all pi 0.79 built-in slash commands, including `zh-CN`.
+- **Session selector translation** — covers visible `session-selector` strings such as `Resume Session`, `Threaded`, `Recent`, `Fuzzy`, and delete prompts.
+- **Non-invasive status bar** — does not replace pi's native footer/status bar, so model, cwd, token, git, and worktree information remain visible.
+- **Runtime UI description localization** — asynchronously localizes extension, prompt-template, and skill command descriptions for autocomplete UI, then caches them locally without blocking rendering.
+- **LLM thinking-language localization** — `/lang think on` replaces tool and parameter descriptions in provider request payloads so the model reads them in the active `/lang` locale.
+- **Provider payload coverage** — supports OpenAI-style, Anthropic, and Google/Gemini tool schemas:
+  - OpenAI-style: `tools[].function.description` and `function.parameters.properties.*.description`
+  - Anthropic: `tools[].description` and `input_schema.properties.*.description`
+  - Google/Gemini: `tools[].functionDeclarations[].description` and `parametersJsonSchema.properties.*.description`
+- **Prefilled baseline translations** — includes offline baseline translations for 12 languages: `zh-CN`, `zh-TW`, `ja`, `ko`, `ru`, `vi`, `es`, `pt-BR`, `de`, `fr`, `id`, `hi`.
+- **Runtime fallback and cache** — descriptions missing from the baseline are translated with the current session model and cached under `~/.pi/agent/state/pi-di18n/think.json` with English-source invalidation.
+- **Summary localization** — intercepts `session_before_compact` and `session_before_tree` so compaction and branch summaries follow the active `/lang` locale.
+- **Extension i18n API compatibility** — preserves `pi-i18n/requestApi` and `pi-core/i18n/requestApi` events for other extensions.
+
+## Installation
+
+Once published:
 
 ```bash
 pi install npm:pi-di18n
 ```
 
-本地开发安装：
+For local development:
 
 ```bash
-pi install /Users/diwu/Documents/codes/Githubs/pi-di18n
+pi install /absolute/path/to/pi-di18n
 ```
 
-安装后重启 pi 或运行 `/reload`。
+Then restart pi, or run `/reload`.
 
-## 使用
+To test this checkout without loading installed extensions:
+
+```bash
+pi -ne -e /absolute/path/to/pi-di18n/index.ts --offline
+```
+
+## Usage
+
+Basic language setup:
 
 ```text
 /lang setup beginner
 /lang zh-CN
-/lang doctor
 /lang debug
 /lang probe
 ```
 
-摘要本地化无需单独命令：触发 `/compact` 或 `/tree` 分支摘要时自动生效，并使用 `/lang` 当前 locale。
-
-## pi 0.79 修复点
-
-当前 pi 0.79 的内置 slash 命令共 22 条。`pi-i18n` 原版在 zh-CN 下没有 `pi.slash.*` bundle key，且 `installCoreHacks` 中的 `slashDescMode` 判定写死 `isZhTw()`，导致 zh-CN 诊断显示：
+Enable LLM-facing thinking localization:
 
 ```text
-slashDescMode=none
+/lang think on
+/lang think doctor
 ```
 
-`pi-di18n` 修复为：
+Disable it:
 
-- `en` 与 `zh-CN` bundle 均包含 22 条 `pi.slash.<name>.description` key。
-- `installCoreHacks` 对所有非 `en` locale 走 `primary/fallback` 判定，不再只允许 zh-TW。
-- 测试校验 zh-CN 对 pi 0.79 全部内置 slash 命令都有本地化翻译。
+```text
+/lang think off
+```
 
-## 开发
+Clear cached runtime translations:
+
+```text
+/lang think clear      # clear current locale
+/lang think clear-all  # clear all locales
+```
+
+Summary localization needs no extra command. It runs automatically when `/compact` or `/tree` branch summaries are triggered, and follows the current `/lang` locale.
+
+## `/lang think` Behavior
+
+`/lang think` does not set a separate language. It follows the current `/lang` locale.
+
+```text
+/lang zh-CN
+/lang think on
+```
+
+The feature is off by default. When enabled, it uses a three-layer lookup:
+
+1. prefilled baseline translations shipped with the package;
+2. local cache with English-source invalidation;
+3. runtime LLM fallback using the current session model.
+
+Safety boundary: only prose `description` strings are translated. Tool names, parameter names, `type`, `enum`, defaults, values, and schema structure are never translated.
+
+## Diagnostics
+
+```text
+/lang debug
+/lang probe
+/lang think doctor
+```
+
+`/lang think doctor` reports:
+
+- current locale and enabled state;
+- session tool/parameter counts;
+- baseline coverage;
+- cache counts;
+- stale entries whose English source changed;
+- pending descriptions that still need runtime translation.
+
+## Development
 
 ```bash
 npm install
@@ -59,22 +128,49 @@ npm test
 npm pack --dry-run
 ```
 
-## 目录
+Current verification baseline:
 
-| 路径 | 说明 |
-|------|------|
-| `index.ts` | pi 扩展入口，注册 `/lang`、core-hacks、摘要本地化事件 |
-| `src/core-hacks.ts` | TUI 本地化 runtime patch |
-| `src/pi-ui.ts` | 工具渲染/按钮等 UI 本地化 |
-| `src/compaction/` | `/compact` 与 `/tree` 摘要本地化 |
-| `locales/` | i18n bundle |
-| `src/core-hacks-locales/` | core-hacks exact/substring 翻译包 |
-| `tests/` | vitest 回归测试 |
-| `doc/` | 设计记录、兼容性说明、术语表 |
+```text
+Test Files  8 passed (8)
+Tests       41 passed (41)
+```
 
-## 兼容性说明
+See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) for detailed verification records.
 
-pi 上游当前没有原生 i18n API。TUI 本地化只能通过 core-hacks patch 内部渲染路径实现，属于 best-effort；每次 pi 升级后都应运行 `/lang debug`、`/lang probe` 与 `npm test` 复测。
+## Directory Layout
+
+| Path | Description |
+|------|-------------|
+| `index.ts` | Extension entry point; registers `/lang`, `core-hacks`, thinking localization, and summary-localization hooks |
+| `src/core-hacks.ts` | Runtime patches for TUI localization |
+| `src/pi-ui.ts` | Localization for tool rendering, buttons, and other UI surfaces |
+| `src/compaction/` | Localization for `/compact` and `/tree` summaries |
+| `src/think/` | B-line LLM thinking-language localization |
+| `src/ui-localize/` | A-line runtime UI description localization for extension/prompt/skill autocomplete descriptions |
+| `src/think-locales/` | Prefilled baseline translations: `en` source + 12 target languages |
+| `scripts/export-think-baseline.mjs` | Export pi built-in tool descriptions as baseline source; re-run on pi upgrade |
+| `locales/` | i18n bundles |
+| `src/core-hacks-locales/` | Exact/substring translation packs for `core-hacks` |
+| `tests/` | vitest regression tests |
+| `doc/` | Architecture notes, roadmap, ADRs, verification records, glossary |
+
+## Compatibility
+
+The baseline target is `@earendil-works/pi-coding-agent` 0.79.x.
+
+pi currently has no native full TUI i18n API. TUI localization therefore depends on best-effort `core-hacks` that patch pi internal render paths. After every pi upgrade, run:
+
+```text
+/lang debug
+/lang probe
+```
+
+and also:
+
+```bash
+npm test
+npm pack --dry-run
+```
 
 ## License
 

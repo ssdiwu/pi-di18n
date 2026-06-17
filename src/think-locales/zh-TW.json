@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "locale": "zh-TW",
+  "tool": {
+    "read": "讀取檔案內容。支援文字檔案和圖片（jpg、png、gif、webp），圖片以附件形式傳送。文字檔案輸出截斷至 2000 行或 50KB（取先到者）。大檔案使用 offset/limit。需要完整檔案時，用 offset 持續讀取直至完成。",
+    "bash": "在當前工作目錄執行 bash 命令。回傳 stdout 和 stderr。輸出截斷至最後 2000 行或 50KB（取先到者）。若被截斷，完整輸出儲存到暫存檔。可選提供以秒為單位的 timeout。",
+    "edit": "使用精確文字取代編輯單一檔案。每條 edits[].oldText 必須比對原檔案中唯一、不重疊的區域。若兩處改動影響同一塊或相鄰行，合併為一條 edit，不要發出重疊的 edit。不要為了連接遠處的改動而包含大量未改動的區域。",
+    "write": "將內容寫入檔案。檔案不存在則建立，存在則覆寫。自動建立父目錄。",
+    "grep": "搜尋檔案內容中的 pattern。回傳符合的行及其檔案路徑和行號。遵守 .gitignore。輸出截斷至 100 個符合或 50KB（取先到者）。過長的行截斷至 500 字元。",
+    "find": "依 glob pattern 搜尋檔案。回傳相對於搜尋目錄的符合檔案路徑。遵守 .gitignore。輸出截斷至 1000 個結果或 50KB（取先到者）。",
+    "ls": "列出目錄內容。回傳依字母排序的項目，目錄帶 '/' 後綴。包含 dotfile。輸出截斷至 500 個項目或 50KB（取先到者）。"
+  },
+  "param": {
+    "read:path": "要讀取的檔案路徑（相對或絕對）",
+    "read:offset": "開始讀取的行號（1-indexed，從 1 開始）",
+    "read:limit": "最多讀取的行數",
+    "bash:command": "要執行的 bash 命令",
+    "bash:timeout": "逾時時間，單位秒（可選，預設無逾時）",
+    "edit:path": "要編輯的檔案路徑（相對或絕對）",
+    "edit:edits": "一條或多條精確取代。每條 edit 針對原檔案比對，而非增量比對。不要包含重疊或巢狀的 edit。若兩處改動涉及同一塊或相鄰行，合併為一條 edit。",
+    "write:path": "要寫入的檔案路徑（相對或絕對）",
+    "write:content": "要寫入檔案的內容",
+    "grep:pattern": "搜尋 pattern（regex 或字面字串）",
+    "grep:path": "要搜尋的目錄或檔案（預設：當前目錄）",
+    "grep:glob": "依 glob pattern 篩選檔案，如 '*.ts' 或 '**/*.spec.ts'",
+    "grep:ignoreCase": "是否忽略大小寫（預設：false）",
+    "grep:literal": "將 pattern 視為字面字串而非 regex（預設：false）",
+    "grep:context": "每個符合前後顯示的行數（預設：0）",
+    "grep:limit": "最多回傳的符合數（預設：100）",
+    "find:pattern": "比對檔案的 glob pattern，如 '*.ts'、'**/*.json' 或 'src/**/*.spec.ts'",
+    "find:path": "要搜尋的目錄（預設：當前目錄）",
+    "find:limit": "最多回傳的結果數（預設：1000）",
+    "ls:path": "要列出的目錄（預設：當前目錄）",
+    "ls:limit": "最多回傳的項目數（預設：500）"
+  }
+}
