@@ -34,6 +34,8 @@
 
     "ui.header.title": "pi — 已本地化",
     "ui.header.hint": "{locale} • /lang",
+    "ui.footer.startup.thinkOn": "lang:{locale}（think:开启，跟随 /lang）",
+    "ui.footer.startup.thinkOff": "lang:{locale}（think:关闭）",
 
     "demo.chat.title": "演示对话",
     "demo.chat.userLabel": "你",

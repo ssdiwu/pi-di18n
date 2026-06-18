@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { statePath } from "./state-paths.js";
 
 export type I18nConfig = {
 	locale?: string;
@@ -35,7 +35,7 @@ function writeJson(path: string, value: any): void {
 }
 
 export function getUserConfigPath(): string {
-	return join(homedir(), ".pi", "agent", "state", "pi-di18n", "config.json");
+	return statePath("config.json");
 }
 
 export function getProjectConfigPath(cwd: string): string {

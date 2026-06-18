@@ -10,7 +10,7 @@
 |------|------|
 | `types.ts` | 类型:`ThinkCache`、`ThinkEntry`、`DescribeItem` |
 | `baseline.ts` | 加载随包预制 baseline(`src/think-locales/*.json`),三层翻译源第1层 |
-| `cache.ts` | 读写 `~/.pi/agent/state/pi-di18n/think.json`,第2层。每条带英文原文做失效比对 |
+| `cache.ts` | 读写 `~/.pi/agent/state/pi-di18n/think.json`（测试可用 `PI_DI18N_STATE_DIR` 覆盖）,第2层。每条带英文原文做失效比对 |
 | `describe.ts` | 从 `pi.getAllTools()` 收集 tool/param 英文 description(待翻译字面量) |
 | `translator.ts` | LLM 批量翻译,复用 compaction 的 `complete()` + `resolveModelAuth` 模式,第3层 |
 | `localize.ts` | 核心编排:三层查询、`session_start` 预翻译、`before_provider_request` 替换、`/lang think` 命令 |

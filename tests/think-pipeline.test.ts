@@ -237,18 +237,18 @@ describe("session_start 预翻译 prefetchOnSessionStart（修复后传真实 ct
 	});
 });
 
-// 切片 3：doctor 诊断 + clear 缓存清理。测试备份/恢复真实 think.json 避免污染。
-const THINK_PATH = path.join(os.homedir(), ".pi", "agent", "state", "pi-di18n", "think.json");
-let backup: string | null = null;
+// 切片 3：doctor 诊断 + clear 缓存清理。测试使用临时状态目录，避免污染真实 ~/.pi。
+const TEST_STATE_DIR = path.join(os.tmpdir(), `pi-di18n-vitest-${process.pid}`);
+const THINK_PATH = path.join(TEST_STATE_DIR, "think.json");
 
 beforeAll(() => {
-	try { backup = fs.readFileSync(THINK_PATH, "utf-8"); } catch { backup = null; }
+	process.env.PI_DI18N_STATE_DIR = TEST_STATE_DIR;
+	fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_STATE_DIR, { recursive: true });
 });
 afterAll(() => {
-	try {
-		if (backup !== null) fs.writeFileSync(THINK_PATH, backup, "utf-8");
-		else if (fs.existsSync(THINK_PATH)) fs.writeFileSync(THINK_PATH, '{"enabled":false,"locales":{}}', "utf-8");
-	} catch {}
+	fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
+	delete process.env.PI_DI18N_STATE_DIR;
 });
 
 describe("/lang think doctor + clear（切片 3）", () => {

@@ -272,10 +272,20 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 	});
 }
 
-export function applyLocalizedFooter(_pi: ExtensionAPI, ctx: any, i18n: I18nApi, _opts?: { force?: boolean }): void {
+export function notifyLanguageThinkStatus(ctx: any, i18n: I18nApi, thinkEnabled: boolean): void {
+	if (!ctx?.hasUI) return;
+	ctx.ui?.notify?.(
+		i18n.t(thinkEnabled ? "pi.ui.footer.startup.thinkOn" : "pi.ui.footer.startup.thinkOff", {
+			locale: localeNativeLabel(i18n.getLocale()),
+		}),
+		"info",
+	);
+}
+
+export function applyLocalizedFooter(_pi: ExtensionAPI, ctx: any, i18n: I18nApi, opts?: { force?: boolean; thinkEnabled?: boolean }): void {
 	if (!ctx?.hasUI) return;
 
 	// Do not override pi's native footer/status bar. It contains model, cwd, token, git,
 	// and worktree status; replacing it with "lang:*" hides important user context.
-	ctx.ui?.notify?.(`lang:${localeNativeLabel(i18n.getLocale())}`, "info");
+	notifyLanguageThinkStatus(ctx, i18n, Boolean(opts?.thinkEnabled));
 }

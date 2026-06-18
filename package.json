@@ -1,6 +1,6 @@
 {
   "name": "pi-di18n",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "pi-di18n: full TUI i18n for pi (continues pi-i18n) plus summary localization (integrates pi-compaction-i18n)",
   "type": "module",
   "license": "MIT",

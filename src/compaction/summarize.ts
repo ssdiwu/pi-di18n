@@ -11,6 +11,7 @@ import { buildCompactionPrompt, buildTreeSummaryPrompt } from "./templates.js";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
+import { statePath } from "../state-paths.js";
 
 // ── Config（仅 model override；locale 走 i18n api）──────────────────────
 
@@ -18,7 +19,7 @@ interface CompactionConfig {
 	model?: string; // e.g. "zai/glm-5v-turbo"，空 = 用当前会话模型
 }
 
-const CONFIG_PATH = join(homedir(), ".pi", "agent", "state", "pi-di18n", "compaction.json");
+const CONFIG_PATH = statePath("compaction.json");
 
 const DEFAULT_CONFIG: CompactionConfig = {
 	model: "",

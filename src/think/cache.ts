@@ -1,15 +1,15 @@
-// 翻译缓存读写：~/.pi/agent/state/pi-di18n/think.json。
+// 翻译缓存读写：默认 ~/.pi/agent/state/pi-di18n/think.json。
 //
-// 路径与 compaction.json 同命名空间（~/.pi/agent/state/pi-di18n/），遵循项目既有约定。
+// 可用 PI_DI18N_STATE_DIR 覆盖状态目录，便于测试隔离。
 // 结构见 ThinkCache（enabled + locales）。每条 ThinkEntry 存 en 原文做失效比对。
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { homedir } from "node:os";
+import { dirname } from "node:path";
 
 import type { ThinkCache, ThinkEntry, ThinkLocaleData, ThinkType } from "./types.js";
+import { statePath } from "../state-paths.js";
 
-const CACHE_PATH = join(homedir(), ".pi", "agent", "state", "pi-di18n", "think.json");
+const CACHE_PATH = statePath("think.json");
 
 const DEFAULT_CACHE: ThinkCache = { enabled: false, locales: {} };
 

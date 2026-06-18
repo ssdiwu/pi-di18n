@@ -34,6 +34,8 @@
 
     "ui.header.title": "pi — localized",
     "ui.header.hint": "{locale} • /lang",
+    "ui.footer.startup.thinkOn": "lang:{locale} (think: on, follows /lang)",
+    "ui.footer.startup.thinkOff": "lang:{locale} (think: off)",
 
     "demo.chat.title": "Demo chat",
     "demo.chat.userLabel": "You",

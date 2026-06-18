@@ -3,14 +3,14 @@
 // prompt templates, and skills. LLM-facing tool descriptions stay in src/think/.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { homedir } from "node:os";
+import { dirname } from "node:path";
+import { statePath } from "../state-paths.js";
 
 export type UiEntry = { en: string; translated: string };
 export type UiLocaleData = { command: Record<string, UiEntry> };
 export type UiCache = { locales: Record<string, UiLocaleData> };
 
-const CACHE_PATH = join(homedir(), ".pi", "agent", "state", "pi-di18n", "ui.json");
+const CACHE_PATH = statePath("ui.json");
 const DEFAULT_CACHE: UiCache = { locales: {} };
 let activeCache: UiCache = loadUiCache();
 

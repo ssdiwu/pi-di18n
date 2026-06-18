@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { detectLocaleFromEnv, loadI18nConfig, saveUserI18nConfig, type I18nConfig } from "./src/config";
 import { I18nRegistry } from "./src/registry";
 import type { BundleV1, I18nApi } from "./src/types";
-import { applyLocalizedFooter, applyLocalizedHeader, installLocalizedToolsOnce } from "./src/pi-ui";
+import { applyLocalizedFooter, applyLocalizedHeader, installLocalizedToolsOnce, notifyLanguageThinkStatus } from "./src/pi-ui";
 import {
 	getCoreDistDebug,
 	getCoreProbeDebug,
@@ -22,7 +22,7 @@ import {
 } from "./src/core-hacks";
 import { summarizeForCompaction, summarizeForTree } from "./src/compaction/summarize";
 import { prefetchOnSessionStart, applyOnProviderRequest, commandThink, getThinkDebug } from "./src/think/localize";
-import { loadCache as loadThinkCache } from "./src/think/cache";
+import { isEnabled as isThinkEnabled, loadCache as loadThinkCache } from "./src/think/cache";
 import { loadUiCache, setActiveUiCache, getUiDebug } from "./src/ui-localize/cache";
 import { prefetchUiDescriptionsOnSessionStart } from "./src/ui-localize/localize";
 
@@ -173,7 +173,7 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 		if (shouldApplyHeaderOnStartup()) {
 			applyLocalizedHeader(pi, ctx, i18n as unknown as I18nApi, { warnCoreMismatch });
 		}
-		applyLocalizedFooter(pi, ctx, i18n as unknown as I18nApi);
+		applyLocalizedFooter(pi, ctx, i18n as unknown as I18nApi, { thinkEnabled: isThinkEnabled(thinkCache) });
 
 		// A 线：异步预翻译 runtime command descriptions（不阻塞 session_start）。
 		prefetchUiDescriptionsOnSessionStart(pi, ctx, i18n as unknown as I18nApi, uiCache);
@@ -656,7 +656,12 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			return true;
 		}
 		if (sub === "think") {
+			const prevEnabled = isThinkEnabled(thinkCache);
 			await commandThink(rest, { ...ctx, getAllTools: () => pi.getAllTools() }, i18n as unknown as I18nApi, thinkCache);
+			const nextEnabled = isThinkEnabled(thinkCache);
+			if ((rest === "on" || rest === "auto" || rest === "enable" || rest === "off" || rest === "disable") && prevEnabled !== nextEnabled) {
+				notifyLanguageThinkStatus(ctx, i18n as unknown as I18nApi, nextEnabled);
+			}
 			return true;
 		}
 		if (sub === "demo") {
