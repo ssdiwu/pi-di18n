@@ -131,8 +131,8 @@ npm pack --dry-run
 Current verification baseline:
 
 ```text
-Test Files  8 passed (8)
-Tests       41 passed (41)
+Test Files  10 passed (10)
+Tests       44 passed (44)
 ```
 
 See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) for detailed verification records.
@@ -148,6 +148,7 @@ See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%
 | `src/think/` | B-line LLM thinking-language localization |
 | `src/ui-localize/` | A-line runtime UI description localization for extension/prompt/skill autocomplete descriptions |
 | `src/think-locales/` | Prefilled baseline translations: `en` source + 12 target languages |
+| `scripts/` | Maintenance scripts for exporting and refreshing generated baseline sources |
 | `scripts/export-think-baseline.mjs` | Export pi built-in tool descriptions as baseline source; re-run on pi upgrade |
 | `locales/` | i18n bundles |
 | `src/core-hacks-locales/` | Exact/substring translation packs for `core-hacks` |
@@ -171,6 +172,10 @@ and also:
 npm test
 npm pack --dry-run
 ```
+
+## Changelog
+
+See [`CHANGELOG.md`](./CHANGELOG.md) for released versions and user-visible changes.
 
 ## License
 
