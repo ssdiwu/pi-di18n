@@ -128,14 +128,14 @@ npm test
 npm pack --dry-run
 ```
 
-Current verification baseline:
+Current verification commands:
 
-```text
-Test Files  10 passed (10)
-Tests       44 passed (44)
+```bash
+npm test
+npm pack --dry-run
 ```
 
-See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) for detailed verification records.
+See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) for a dated verification snapshot and detailed records.
 
 ## Directory Layout
 
