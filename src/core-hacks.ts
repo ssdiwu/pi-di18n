@@ -1765,16 +1765,24 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 					const next = api ? tCore(api, message) : message;
 					const localizedPrefix = !api ? null : isZhCn(api.getLocale()) || isZhTw(api.getLocale()) ? "警告：" : null;
 					probeHit("interactive.showWarning", next !== message || localizedPrefix !== null);
-					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
-					const ret = orig.call(this, next);
-					if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
-					for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
-						const child = this.chatContainer.children[i];
-						if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
-						child.setText(String(child.text).replace(/Warning:\s*/g, localizedPrefix).replace(/警告\s+：/g, "警告："));
-						break;
+					try {
+						const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+						const ret = orig.call(this, next);
+						if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
+						for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
+							const child = this.chatContainer.children[i];
+							if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
+							child.setText(String(child.text).replace(/Warning:\s*/g, localizedPrefix).replace(/警告\s+：/g, "警告："));
+							break;
+						}
+						return ret;
+					} catch (e) {
+						// 同 showError：patch 层不放大原生 showWarning 的瞬态异常成 uncaughtException。
+						// 记 probe 的 unsafe 状态，便于 /lang probe 诊断（与 showStatus 失败处理一致）。
+						probeHook("interactive.showWarning", "unsafe", String(e));
+						try { console.error(next); } catch {}
+						return;
 					}
-					return ret;
 				},
 				"interactive.showWarning",
 			);
@@ -1784,16 +1792,26 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 					const next = api ? tCore(api, message) : message;
 					const localizedPrefix = !api ? null : isZhCn(api.getLocale()) ? "错误：" : isZhTw(api.getLocale()) ? "錯誤：" : null;
 					probeHit("interactive.showError", next !== message || localizedPrefix !== null);
-					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
-					const ret = orig.call(this, next);
-					if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
-					for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
-						const child = this.chatContainer.children[i];
-						if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
-						child.setText(String(child.text).replace(/Error:\s*/g, localizedPrefix).replace(/錯誤\s+：/g, "錯誤：").replace(/错误\s+：/g, "错误："));
-						break;
+					try {
+						const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+						const ret = orig.call(this, next);
+						if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
+						for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
+							const child = this.chatContainer.children[i];
+							if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
+							child.setText(String(child.text).replace(/Error:\s*/g, localizedPrefix).replace(/錯誤\s+：/g, "錯誤：").replace(/错误\s+：/g, "错误："));
+							break;
+						}
+						return ret;
+					} catch (e) {
+						// 防御：原生 showError 依赖 pi 内部状态（Spacer/theme/chatContainer），
+						// pi 升级或瞬态异常时 orig.call 可能抛错。patch 层不应放大成 uncaughtException
+						// 导致 pi 崩溃退出（见 Spacer is not defined 崩溃）。降级到 stderr 兜底，保住进程。
+						// 记 probe 的 unsafe 状态，便于 /lang probe 诊断（与 showStatus 失败处理一致）。
+						probeHook("interactive.showError", "unsafe", String(e));
+						try { console.error(next); } catch {}
+						return;
 					}
-					return ret;
 				},
 				"interactive.showError",
 			);

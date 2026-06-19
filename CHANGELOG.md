@@ -4,7 +4,10 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.2 - 2026-06-19
+
 ### Fixed
+- Hardened the `showError` / `showWarning` core-hack patches so a transient upstream failure (e.g. `Spacer is not defined` after a pi upgrade) degrades to a stderr fallback instead of escalating to an `uncaughtException` that kills the pi process. The degradation is recorded under the `interactive.showError` / `interactive.showWarning` probe points with state `unsafe`, so `/lang probe` can surface it.
 - Filled the remaining `zh-CN` selector gaps in `core-hacks`, especially the model, settings, tree, login, logout, trust, and resume selectors reported in real TUI screenshots.
 - Added ANSI-aware row normalization so colored selector lines such as `Scope: all | scoped`, `tab scope (all/scoped)`, `Model Name`, and `Resume Session` localize correctly in real pi sessions.
 - Localized `zh-CN` settings rows for `Default project trust`, `Warnings`, and related descriptions/values without corrupting English source strings like `configured`.

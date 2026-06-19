@@ -31,3 +31,18 @@ npm pack --dry-run
 ```
 
 重点观察：`coreDist`、`slashDescMode`、`probe` 的 matched/hit/translated。
+
+## 发版流程
+
+版本号遵循语义化版本。发版步骤固定为：
+
+1. 同步版本号：`package.json` + `package-lock.json`（根 `version` 与 `packages[""].version` 两处）。
+2. `CHANGELOG.md`：把 `## Unreleased` 转为 `## <版本号> - <日期>`，顶部补回空的 `## Unreleased` 段。
+3. 确认 tag、`package.json` 版本号、`CHANGELOG` 版本段三者一致。
+4. 运行验证：`npm test` + `npm pack --dry-run`。
+5. 提交：`fix:` / `feat:` 类型 + 中文描述，单一主题。
+6. 打 tag：`git tag v<版本号>`（与版本号一致）。
+7. 发布：`npm publish`（`publishConfig.access` 已为 `public`）。
+8. 推送：`git push && git push --tags`。
+
+禁止 `git push --force` 到 `main`。
