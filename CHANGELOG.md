@@ -2,6 +2,15 @@
 
 All notable changes to `pi-di18n` are documented here.
 
+## Unreleased
+
+### Fixed
+- Filled the remaining `zh-CN` selector gaps in `core-hacks`, especially the model, settings, tree, login, logout, trust, and resume selectors reported in real TUI screenshots.
+- Added ANSI-aware row normalization so colored selector lines such as `Scope: all | scoped`, `tab scope (all/scoped)`, `Model Name`, and `Resume Session` localize correctly in real pi sessions.
+- Localized `zh-CN` settings rows for `Default project trust`, `Warnings`, and related descriptions/values without corrupting English source strings like `configured`.
+- Localized runtime error and usage notices for `/export`, `/import`, `/copy`, and `/share`, including the upstream `Error:` prefix rendered by interactive mode.
+- Tightened short-value translations (`Ask`, `configure`, `Always trust`, `Never trust`) to whole-line-only matching so generic substrings no longer leak into unrelated UI text.
+
 ## 0.1.1 - 2026-06-18
 
 ### Fixed

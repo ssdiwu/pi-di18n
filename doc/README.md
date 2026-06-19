@@ -41,6 +41,7 @@
 | 文件 | 说明 |
 |------|------|
 | [verification-2026-06-17.md](./40-版本实施方案/verification-2026-06-17.md) | 2026-06-17 自动测试、npm dry-run、真实 TUI 验证记录 |
+| [verification-2026-06-19.md](./40-版本实施方案/verification-2026-06-19.md) | 2026-06-19 `zh-CN` TUI 漏翻修复验证（selector、resume、import/export 错误提示） |
 
 ## 文档类型约定
 

@@ -220,6 +220,11 @@ function isZhTw(locale: string): boolean {
 	return l === "zh-tw" || l.startsWith("zh-tw-") || l.startsWith("zh-hant");
 }
 
+function isZhCn(locale: string): boolean {
+	const l = String(locale || "").toLowerCase();
+	return l === "zh-cn" || l.startsWith("zh-cn-") || l.startsWith("zh-hans");
+}
+
 /**
  * 非 en（包括 en-US/en-GB 等变体）的任意本地化 locale。
  * pi-di18n：slash 描述本地化应对所有非 en locale 生效，
@@ -431,7 +436,14 @@ const ZH_TW_PARITY_SAMPLES: string[] = [
 	"Quiet startup",
 ];
 
-const EXACT_WHOLE_LINE_ONLY_KEYS = new Set(["Yes", "No"]);
+const EXACT_WHOLE_LINE_ONLY_KEYS = new Set([
+	"Yes",
+	"No",
+	"Ask",
+	"configure",
+	"Always trust",
+	"Never trust",
+]);
 
 function applyExactMap(s: string, exact?: Record<string, string>): string {
 	if (!exact) return s;
@@ -458,7 +470,8 @@ function tCoreFromPack(i18n: I18nApi, msg: string): string {
 	if (CORE_FULL_SCAN_ANCHORS.length < 0) return s;
 	const pack = getCoreHackPack(i18n.getLocale());
 	if (!pack) return s;
-	return applyExactMap(s, pack.exact);
+	const translated = applyExactMap(s, pack.exact);
+	return isZhCn(i18n.getLocale()) ? postprocessZhCnUiLine(translated) : translated;
 }
 
 function tCore(i18n: I18nApi, msg: string): string {
@@ -994,6 +1007,161 @@ function tUiLine(i18n: I18nApi, line: string): string {
 	return translated;
 }
 
+export function translateUiLineForTest(i18n: I18nApi, line: string): string {
+	const input = String(line ?? "");
+	return tSelector(i18n, tCore(i18n, input));
+}
+
+function stripAnsiForMatch(input: string): string {
+	return String(input ?? "")
+		.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, "")
+		.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "");
+}
+
+function postprocessZhCnUiLine(line: string): string {
+	let s = String(line ?? "");
+	const plain = stripAnsiForMatch(s).trim();
+	const selectedPrefix = plain.startsWith("→ ") ? "→ " : "";
+	const rowPrefix = selectedPrefix || "  ";
+	const plainBody = plain.replace(/^→\s*/, "");
+
+	if (/^(?:Scope:|范围：)\s*all\s*\|\s*scoped$/i.test(plain)) return "范围：全部 | 已筛选";
+	if (/^tab\s+scope(?:\s*\((?:all\/scoped|all\/filtered)\)|（全部\/已筛.*）?)$/i.test(plain)) return "tab 范围（全/筛）";
+	{
+		const m = plainBody.match(/^Model\s+(?:Name|名称)[:：]\s*(.+)$/i);
+		if (m) return `${rowPrefix}模型：${m[1]}`;
+	}
+	const boolLabels = new Set([
+		"自动压缩",
+		"自动调整图片大小",
+		"屏蔽图片",
+		"技能命令",
+		"显示硬件光标",
+		"收缩时清除",
+		"终端进度",
+		"隐藏思考",
+		"折叠更新日志",
+		"安静启动",
+		"安装遥测",
+	]);
+	const settingsRowLabels = new Set([
+		"自动压缩",
+		"自动调整图片大小",
+		"屏蔽图片",
+		"技能命令",
+		"显示硬件光标",
+		"编辑器内距",
+		"自动完成最大项目数",
+		"收缩时清除",
+		"终端进度",
+		"引导模式",
+		"后续消息模式",
+		"传输方式",
+		"HTTP 空闲超时",
+		"隐藏思考",
+		"折叠更新日志",
+		"安静启动",
+		"安装遥测",
+		"默认项目可信策略",
+		"双击 Esc 动作",
+		"树状筛选模式",
+		"警告",
+		"思考等级",
+		"主题",
+	]);
+	for (const label of Array.from(settingsRowLabels).sort((a, b) => b.length - a.length)) {
+		if (!plainBody.startsWith(label)) continue;
+		const rawRest = plainBody.slice(label.length);
+		if (/^\s*[：:]/.test(rawRest)) continue;
+		const value = rawRest.trim();
+		if (!value) continue;
+		let out = value;
+		if (/^(true|false)$/i.test(value) && boolLabels.has(label)) out = value.toLowerCase() === "true" ? "开" : "关";
+		else if ((label === "引导模式" || label === "后续消息模式") && /^all$/i.test(value)) out = "全部";
+		else if (label === "传输方式" && /^auto$/i.test(value)) out = "自动";
+		else if (label === "默认项目可信策略" && /^Ask$/i.test(value)) out = "问";
+		else if (label === "默认项目可信策略" && /^Always trust$/i.test(value)) out = "始终信任";
+		else if (label === "默认项目可信策略" && /^Never trust$/i.test(value)) out = "永不信任";
+		else if (label === "警告" && /^configure$/i.test(value)) out = "配置";
+		else if (label === "双击 Esc 动作" && /^tree$/i.test(value)) out = "会话树";
+		else if (label === "树状筛选模式" && /^default$/i.test(value)) out = "默认";
+		else if (label === "思考等级" && /^high$/i.test(value)) out = "高";
+		else if (label === "主题" && /^light\/dark$/i.test(value)) out = "明/暗";
+		return `${rowPrefix}${label} ${out}`;
+	}
+	if (/^↑↓\s+navigate\s+enter\s+select\s+escape\/ctrl\+c\s+cancel$/i.test(plainBody)) {
+		return `${rowPrefix}↑↓ 导航  enter 选择  escape/ctrl+c 取消`;
+	}
+	if (/^↑↓\s+navigate\s+enter\s+save\s+escape\/ctrl\+c\s+cancel$/i.test(plainBody)) {
+		return `${rowPrefix}↑↓ 导航  enter 保存  escape/ctrl+c 取消`;
+	}
+	if (/^tab scope\b.*(?:re:<pattern> regex .*exact|re:<模式> 正则 .*精确)$/i.test(plainBody)) {
+		return `${rowPrefix}tab 范围 · re:<模式> 正则 · "短语" 精确`;
+	}
+	{
+		const m = plainBody.match(/^Resume Session \((?:Current Folder|Current Fold|Curren|All)\)?\s+(.+)$/i);
+		if (m) {
+			let rest = m[1] ?? "";
+			rest = rest.replace(/\bLoading\b/g, "加载中");
+			rest = rest.replace(/名称：\s*All/g, "名称： 全部");
+			rest = rest.replace(/\|\s*○\s*All/g, "| ○ 全部");
+			return `恢复会话（当前文件夹） ${rest}`;
+		}
+	}
+	if (/^ctrl\+s sort · ctrl\+n named · ctrl\+d delete · ctrl\+p path \(off\) · ctrl\+r rename$/i.test(plainBody)) {
+		return `${rowPrefix}ctrl+s 排序 · ctrl+n 命名 · ctrl+d 删除 · ctrl+p 路径（关） · ctrl+r 重命名`;
+	}
+
+	s = s.replace(/^[\t ]*Scope:\s*all\s*\|\s*scoped\s*$/i, () => "范围：全部 | 已筛选");
+	s = s.replace(/^[\t ]*tab\s+scope\s*\[[0-9;]*m?\s*\((?:all\/scoped|all\/filtered)\)\s*$/i, () => "tab 范围（全/筛）");
+	s = s.replace(/^[\t ]*tab\s+scope\s*\((?:all\/scoped|all\/filtered)\)\s*$/i, () => "tab 范围（全/筛）");
+	s = s.replace(/^[\t ]*Model\s+Name[:：]\s*(.+)$/i, (_m, name) => `模型：${name}`);
+	s = s.replace(/^[\t ]*Model\s+名称[:：]\s*(.+)$/i, (_m, name) => `模型：${name}`);
+
+	s = s.replaceAll("Only showing models with configured API keys (see README for details)", "仅显示已配置 API 密钥的模型（详见 README）");
+	s = s.replaceAll("Only showing models from configured providers. Use /login to add providers.", "仅显示来自已配置提供方的模型。使用 /login 添加提供方。");
+	s = s.replaceAll("Resume Session (Current Folder)", "恢复会话（当前文件夹）");
+	s = s.replaceAll("Resume Session (All)", "恢复会话（全部）");
+	s = s.replace(/Resume Session \((?:Current Fold|Curren)\b/g, "恢复会话（当前文件夹）");
+	s = s.replace(/Resume Session \(All\b/g, "恢复会话（全部）");
+	s = s.replaceAll("No sessions in current folder. Press Tab to view all.", "当前文件夹中没有会话。按 Tab 查看全部。");
+	s = s.replaceAll("No sessions found", "未找到会话");
+	s = s.replaceAll("Loading", "加载中");
+	s = s.replaceAll("名称： All", "名称： 全部");
+	s = s.replace(/名称：\s*All/g, "名称： 全部");
+	s = s.replaceAll("| ○ All", "| ○ 全部");
+	s = s.replace(/导出会话失败：\s+/g, "导出会话失败：");
+	s = s.replaceAll("Scope: ", "范围：");
+	s = s.replaceAll(" (all/scoped)", "（全部/已筛选）");
+	s = s.replaceAll(" (all/filtered)", "（全部/已筛选）");
+
+	s = s.replaceAll("Default project trust", "默认项目可信策略");
+	s = s.replaceAll("Fallback behavior when no extension or saved trust decision decides project trust", "当没有扩展或已保存的信任决策决定项目可信状态时的兜底行为");
+	s = s.replaceAll("Warnings", "警告");
+	s = s.replaceAll("Enable or disable individual warnings", "启用或禁用单项警告");
+	s = s.replaceAll("Image width", "图片宽度");
+	s = s.replaceAll("Preferred inline image width in terminal cells", "终端单元格中的首选内联图片宽度");
+	s = s.replaceAll("Prevent images from being sent to LLM providers", "阻止将图片发送给 LLM 提供方");
+
+	s = s.replace(/^默认项目可信策略\s+Ask$/i, "默认项目可信策略 问");
+	s = s.replace(/^默认项目可信策略\s+Always trust$/i, "默认项目可信策略 始终信任");
+	s = s.replace(/^默认项目可信策略\s+Never trust$/i, "默认项目可信策略 永不信任");
+	s = s.replace(/^警告\s+configure$/i, "警告 配置");
+	s = s.replace(/^双击 Esc 动作\s+tree$/i, "双击 Esc 动作 会话树");
+	s = s.replace(/^树状筛选模式\s+default$/i, "树状筛选模式 默认");
+	s = s.replace(/^思考等级\s+high$/i, "思考等级 高");
+	s = s.replace(/^主题\s+light\/dark$/i, "主题 明/暗");
+	s = s.replace(/^\s*Error:\s*/i, "错误：");
+	s = s.replace(/^错误：\s+/i, "错误：");
+	s = s.replace(/^警告：\s+/i, "警告：");
+	const plainAfter = stripAnsiForMatch(s).trim();
+	if (/^Error:\s*/i.test(plainAfter)) {
+		return plainAfter.replace(/^Error:\s*/i, "错误：").replace(/导出会话失败：\s+/g, "导出会话失败：");
+	}
+
+	return s;
+}
+
 function tSelectorLegacyZhTw(i18n: I18nApi, line: string): string {
 	if (!isZhTw(i18n.getLocale())) return line;
 	let s = String(line ?? "");
@@ -1171,8 +1339,9 @@ function tSelectorLegacyZhTw(i18n: I18nApi, line: string): string {
 function tSelector(i18n: I18nApi, line: string): string {
 	if (isZhTw(i18n.getLocale())) return tSelectorLegacyZhTw(i18n, line);
 	const pack = getCoreHackPack(i18n.getLocale());
-	if (!pack) return line;
-	return applyExactMap(String(line ?? ""), pack.exact);
+	if (!pack) return isZhCn(i18n.getLocale()) ? postprocessZhCnUiLine(String(line ?? "")) : line;
+	const translated = applyExactMap(String(line ?? ""), pack.exact);
+	return isZhCn(i18n.getLocale()) ? postprocessZhCnUiLine(translated) : translated;
 }
 
 function patchOnce<T extends object>(obj: T, key: string, patcher: () => void): void {
@@ -1592,21 +1761,39 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 			);
 			patchMethod(InteractiveMode.prototype, "showWarning", (orig) =>
 				function patchedShowWarning(this: any, message: string) {
-					// core showWarning adds its own "Warning:" prefix; translate the payload only.
 					const api = getCurrentI18n();
 					const next = api ? tCore(api, message) : message;
-					probeHit("interactive.showWarning", next !== message);
-					return orig.call(this, next);
+					const localizedPrefix = !api ? null : isZhCn(api.getLocale()) || isZhTw(api.getLocale()) ? "警告：" : null;
+					probeHit("interactive.showWarning", next !== message || localizedPrefix !== null);
+					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+					const ret = orig.call(this, next);
+					if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
+					for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
+						const child = this.chatContainer.children[i];
+						if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
+						child.setText(String(child.text).replace(/Warning:\s*/g, localizedPrefix).replace(/警告\s+：/g, "警告："));
+						break;
+					}
+					return ret;
 				},
 				"interactive.showWarning",
 			);
 			patchMethod(InteractiveMode.prototype, "showError", (orig) =>
 				function patchedShowError(this: any, message: string) {
-					// core showError adds its own "Error:" prefix; translate the payload only.
 					const api = getCurrentI18n();
 					const next = api ? tCore(api, message) : message;
-					probeHit("interactive.showError", next !== message);
-					return orig.call(this, next);
+					const localizedPrefix = !api ? null : isZhCn(api.getLocale()) ? "错误：" : isZhTw(api.getLocale()) ? "錯誤：" : null;
+					probeHit("interactive.showError", next !== message || localizedPrefix !== null);
+					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+					const ret = orig.call(this, next);
+					if (!localizedPrefix || !Array.isArray(this?.chatContainer?.children)) return ret;
+					for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
+						const child = this.chatContainer.children[i];
+						if (typeof child?.setText !== "function" || typeof child?.text !== "string") continue;
+						child.setText(String(child.text).replace(/Error:\s*/g, localizedPrefix).replace(/錯誤\s+：/g, "錯誤：").replace(/错误\s+：/g, "错误："));
+						break;
+					}
+					return ret;
 				},
 				"interactive.showError",
 			);
