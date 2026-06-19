@@ -14,6 +14,13 @@
 - `locale` 真相源由 `/lang` 和 `I18nRegistry` 管理；compaction 模块从 `i18n.getLocale()` 接收 locale，不再独立检测环境变量。
 - core-hacks 是 best-effort patch，每次 pi 升级必须复测。
 
+## TUI 边界防护
+
+- `core-hacks`、`patchedShowError`、`patchedShowWarning`、selector / slash 描述等 TUI patch 路径必须按“不信任 Pi 主程序渲染层”设计。
+- 遇到 `Spacer is not defined` 或其它上游 TUI 组件异常时，扩展只能降级显示或跳过该 UI 更新，不能让 `/lang`、错误提示、locale 切换或后续命令中断。
+- UI patch 的状态更新、缓存写入和命令结果不能和 TUI 渲染放在同一个未保护代码块里；渲染调用必须有 `try/catch` 或等价容错边界。
+- 涉及错误/警告展示、overlay、selector 或 slash 命令描述的改动，必须补“UI 渲染抛错仍不影响业务返回”的回归测试；真实 Pi TUI 再 smoke test。
+
 ## 验证要求
 
 改动后至少运行：
