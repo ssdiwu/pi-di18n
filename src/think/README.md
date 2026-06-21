@@ -40,4 +40,4 @@ provider payload 覆盖：
 - `/lang think clear` 清当前 locale 缓存,`/lang think clear-all` 清全部 locale 缓存。
 - 预制 baseline 覆盖 12 语言(ADR 0003),其余走运行时兜底。
 
-详见 [doc/30-路线图/路线图.md](../../doc/30-路线图/路线图.md)、[doc/10-架构与运行/adr/](../../doc/10-架构与运行/adr/)。
+详见 [doc/30-路线图/路线图.md](../../doc/30-路线图/路线图.md)、[doc/决策档案/](../../doc/决策档案/)。
