@@ -1434,7 +1434,12 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 
 			const base = orig ?? cmd.description;
 			const next = localizeBuiltinSlashDesc(i18n, cmd.name, base);
-			if (typeof next === "string" && next !== cmd.description) {
+			// `changed` counts commands we *successfully localized* (translation differs
+			// from the English original `base`), not commands whose value physically
+			// changed on this call. On an idempotent re-install (same locale, cmd
+			// already localized by a prior pass) the value is unchanged yet
+			// localization still succeeded — that is primary, not fallback.
+			if (typeof next === "string" && next !== base) {
 				cmd.description = next;
 				changed++;
 			}

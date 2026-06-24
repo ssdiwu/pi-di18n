@@ -92,4 +92,33 @@ describe("core-hacks slash command patch", () => {
 		await uninstallCoreHacks();
 		expect(compact?.description).toBe(originalCompactDescription);
 	});
+
+	it("reports primary mode on repeated installCoreHacks in the same locale (reload scenario)", async () => {
+		const piDistCli = join(process.cwd(), "node_modules", "@earendil-works", "pi-coding-agent", "dist", "cli.js");
+		if (!process.argv.includes(piDistCli)) process.argv.unshift(piDistCli);
+
+		await uninstallCoreHacks(); // clean start
+
+		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
+		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
+		expect(i18n.registerBundle(loadBundle("zh-CN")).ok).toBe(true);
+
+		const compact = BUILTIN_SLASH_COMMANDS.find((cmd) => cmd.name === "compact");
+
+		// First install: cold start — stores English originals, translates to zh-CN.
+		const first = await installCoreHacks(i18n);
+		expect(first.ok).toBe(true);
+		expect(getSlashDescMode().mode).toBe("primary");
+		expect(compact?.description).toBe("手动压缩会话上下文");
+
+		// Second install: same-process reload (e.g. /lang picked same locale, /reload).
+		// cmd.description is already zh-CN; state.original still holds the English
+		// original. Idempotent re-translation must remain primary, NOT fallback.
+		const second = await installCoreHacks(i18n);
+		expect(second.ok).toBe(true);
+		expect(getSlashDescMode().mode).toBe("primary");
+		expect(compact?.description).toBe("手动压缩会话上下文");
+
+		await uninstallCoreHacks();
+	});
 });
