@@ -4,6 +4,8 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.3 - 2026-06-25
+
 ### Fixed
 - Stopped the false "slash command localization is running in fallback mode" warning that appeared intermittently on same-locale reloads (e.g. `/lang` picking the current language again, `/reload`, or extension hot reload). Re-installing core-hacks in the same locale is idempotent and now correctly reports `primary` instead of miscounting already-localized commands as unchanged.
 
