@@ -10,7 +10,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { ThinkType } from "./types.js";
+import type { ThinkType } from "./types.ts";
 
 // baseline 文件结构（与 src/think-locales/*.json 同构）：
 //   { version, locale, tool: { name: "翻译" }, param: { "name:param": "翻译" } }

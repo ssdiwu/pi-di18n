@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { statePath } from "./state-paths.js";
+import { statePath } from "./state-paths.ts";
 
 export type I18nConfig = {
 	locale?: string;

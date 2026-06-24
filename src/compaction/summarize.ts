@@ -6,8 +6,8 @@
 
 import { complete, getEnvApiKey, getModel } from "@earendil-works/pi-ai";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
-import { languageInstructionForLocale } from "./locale.js";
-import { buildCompactionPrompt, buildTreeSummaryPrompt } from "./templates.js";
+import { languageInstructionForLocale } from "./locale.ts";
+import { buildCompactionPrompt, buildTreeSummaryPrompt } from "./templates.ts";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";

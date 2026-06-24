@@ -4,8 +4,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { I18nApi } from "../types.js";
 import { translateBatch } from "../think/translator.js";
-import type { UiCache } from "./cache.js";
-import { getCachedCommandDescription, putCachedCommandDescription } from "./cache.js";
+import type { UiCache } from "./cache.ts";
+import { getCachedCommandDescription, putCachedCommandDescription } from "./cache.ts";
 
 const inFlight = new Map<string, Promise<string | undefined>>();
 

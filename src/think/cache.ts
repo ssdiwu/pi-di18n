@@ -6,7 +6,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
-import type { ThinkCache, ThinkEntry, ThinkLocaleData, ThinkType } from "./types.js";
+import type { ThinkCache, ThinkEntry, ThinkLocaleData, ThinkType } from "./types.ts";
 import { statePath } from "../state-paths.js";
 
 const CACHE_PATH = statePath("think.json");

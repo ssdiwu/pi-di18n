@@ -1,4 +1,4 @@
-import { languageForLocale, type SupportedLanguage } from "./locale.js";
+import { languageForLocale, type SupportedLanguage } from "./locale.ts";
 
 const SECTION_LABELS: Record<SupportedLanguage, {
 	goal: string;

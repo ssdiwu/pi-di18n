@@ -3,7 +3,7 @@
 // skill description 是正交扩展（动态、无预制 baseline），走运行时兜底，
 // 留待后续切片；本模块切片 1 聚焦 tool/param 的可验证闭环。
 
-import type { DescribeItem } from "./types.js";
+import type { DescribeItem } from "./types.ts";
 
 /**
  * 从 JSON schema 的 properties 提取参数描述。

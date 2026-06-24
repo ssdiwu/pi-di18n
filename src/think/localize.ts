@@ -10,11 +10,11 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import type { I18nApi } from "../types.js";
-import type { ThinkCache, ThinkType, DescribeItem } from "./types.js";
-import { getBaselineTranslation, countBaseline } from "./baseline.js";
-import { getCachedEntry, isEnabled, putCachedEntry, setEnabled, clearLocale } from "./cache.js";
-import { collectDescriptions, extractParamDescriptions } from "./describe.js";
-import { translateBatch } from "./translator.js";
+import type { ThinkCache, ThinkType, DescribeItem } from "./types.ts";
+import { getBaselineTranslation, countBaseline } from "./baseline.ts";
+import { getCachedEntry, isEnabled, putCachedEntry, setEnabled, clearLocale } from "./cache.ts";
+import { collectDescriptions, extractParamDescriptions } from "./describe.ts";
+import { translateBatch } from "./translator.ts";
 
 // 防止后台预翻译和同步兜底重复触发。key 形如 "zh-CN:tool:read"。
 const inFlight = new Map<string, Promise<string | undefined>>();
