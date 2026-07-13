@@ -12,6 +12,7 @@
 | [types.ts](./types.ts) | i18n bundle/API 类型定义。 |
 | [compaction/](./compaction/) | `/compact` 与 `/tree` 摘要本地化。 |
 | [think/](./think/) | B 线：LLM 思考语言本地化。 |
+| [think-locales/](./think-locales/) | B 线随包发布的 tool/param description 预制 baseline 数据，不包含运行时逻辑。 |
 | [ui-localize/](./ui-localize/) | A 线 runtime UI description 本地化：扩展/技能/提示词命令说明异步翻译与缓存。 |
 | [core-hacks-locales/](./core-hacks-locales/) | core-hacks exact/substring 翻译包。 |
 

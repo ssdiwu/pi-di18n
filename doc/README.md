@@ -29,7 +29,7 @@
 |------|------|
 | [pi-0.79-slash-i18n.md](./10-架构与运行/pi-0.79-slash-i18n.md) | pi 0.79 slash 命令本地化的问题、修复与实现 |
 | [core-hacks-ui-boundary.md](./10-架构与运行/core-hacks-ui-boundary.md) | core-hacks 的 TUI fail-soft 边界、风险路径与测试要求 |
-| [adr/](./决策档案/) | 架构决策记录（索引见 `决策档案/README.md`） |
+| [决策档案/](./决策档案/) | 架构决策记录（索引见 `决策档案/README.md`） |
 
 ### 30-路线图/
 

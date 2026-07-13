@@ -35,7 +35,7 @@ provider payload 覆盖：
 
 - 只翻译 description 散文,不碰字段名 / type / enum / 值(ADR 0002)。
 - 翻译用 session 当前模型,不配置(ADR 0001)。
-- 默认关,`/lang think on` 显式开启;语言跟随 `/lang` 的 locale(ADR 决策 12)。
+- 默认关,`/lang think on` 显式开启;语言跟随 `/lang` 的 locale，命令设计见路线图决策摘要。
 - `/lang think doctor` 报告 baseline 覆盖、缓存条数、过期条数、pending 条数。
 - `/lang think clear` 清当前 locale 缓存,`/lang think clear-all` 清全部 locale 缓存。
 - 预制 baseline 覆盖 12 语言(ADR 0003),其余走运行时兜底。
