@@ -4,6 +4,15 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.5 - 2026-07-13
+
+### Fixed
+- Prevented oversized image and audio payloads from crossing the compaction retention boundary; complete tool turns are moved into the summary and unsafe boundaries cancel instead of falling back.
+- Localized runtime cache-miss notices for model switches and idle gaps while preserving token, minute, and cost values; TUI rendering failures remain fail-soft.
+
+### Tests
+- Added real pi 0.79 split-turn compaction reconstruction coverage and cache-miss notice parser/patch regression coverage.
+
 ## 0.1.4 - 2026-07-13
 
 ### Fixed
