@@ -4,6 +4,11 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.7 - 2026-07-13
+
+### Tests
+- Added a regression proving the upstream cache-miss notice still runs and remains visible when locale/template formatting throws.
+
 ## 0.1.6 - 2026-07-13
 
 ### Fixed
