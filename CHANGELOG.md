@@ -4,6 +4,14 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.6 - 2026-07-13
+
+### Fixed
+- Hardened dynamic cache-miss notice localization so snapshot, template, ANSI mutation, and renderer failures never prevent the upstream notice method from running or escape into the main session.
+
+### Tests
+- Added exact zh-CN/zh-TW idle and model-switch assertions, ANSI preservation coverage, and upstream-call fail-soft regressions.
+
 ## 0.1.5 - 2026-07-13
 
 ### Fixed
