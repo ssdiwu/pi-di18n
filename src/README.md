@@ -4,7 +4,8 @@
 
 | 文件/目录 | 说明 |
 |-----------|------|
-| [core-hacks.ts](./core-hacks.ts) | core-hacks：patch pi 内部 TUI 渲染路径与 slash 命令描述。 |
+| [core-hacks.ts](./core-hacks.ts) | core-hacks：patch pi 内部 TUI 渲染路径、slash 命令描述和动态 cache miss 提示。 |
+| [cache-miss-notice.ts](./cache-miss-notice.ts) | cache miss 动态文案的分支解析、locale 模板格式化与 ANSI 安全处理。 |
 | [pi-ui.ts](./pi-ui.ts) | 工具 UI、按钮、输出渲染本地化。 |
 | [registry.ts](./registry.ts) | i18n bundle registry 与 `t()` 翻译 API。 |
 | [config.ts](./config.ts) | `/lang` 配置读取、保存、环境 locale 检测。 |

@@ -23,3 +23,7 @@ pi-compaction-i18n 原本独立读环境变量 / 独立 config 决定 locale。�
 摘要用的 LLM 模型默认跟随当前会话；可在 `~/.pi/agent/state/pi-di18n/compaction.json` 配置 `model`（`provider/modelId`）覆盖。
 
 总结请求失败时，扩展会记录实际 `provider/model` 并将错误分类为模型不可用、认证失败、usage/quota、限流、网络、取消或未知；随后返回 `{ cancel: true }`，阻止 pi core 使用当前会话模型重复请求。成功摘要的 `details` 也包含实际 `provider` 和 `model`。
+
+## 富媒体保留边界
+
+`session_before_compact` 会扫描 pi core 提供的保留区；如果完整 turn 中含超过 512 KiB 的图片或音频 payload，就把 `firstKeptEntryId` 推进到该 turn 之后的 user 边界，再将被移出的完整 turn补入摘要输入。这样 JSONL 原始媒体不被删除，但 compaction 后由 `buildSessionContext` 重建的活动上下文不再携带大 payload，也不会留下孤立的 tool call/result。无安全 user 边界时取消本次压缩，不让 pi core 使用当前会话模型兜底。

@@ -13,6 +13,9 @@
 | [compaction-failure.test.ts](./compaction-failure.test.ts) | compaction 单次失败取消、错误分类、override 和 TUI 通知容错。 |
 | [compaction-faux.test.ts](./compaction-faux.test.ts) | 使用 pi-ai faux provider 验证 `stopReason=error` 正常 resolve 协议。 |
 | [settings-localization.test.ts](./settings-localization.test.ts) | pi 0.79 新增设置的语言包、zh-CN 行格式和 zh-TW legacy。 |
+| [compaction-media.test.ts](./compaction-media.test.ts) | 富媒体 compaction 安全边界：大图片推进、完整 turn 保留、活动上下文重建验证。 |
+| [cache-miss-notice.test.ts](./cache-miss-notice.test.ts) | 动态 cache miss notice 的分支解析、locale 模板和运行时数值保留。 |
+| [cache-miss-notice-patch.test.ts](./cache-miss-notice-patch.test.ts) | `addCacheMissNotice` core patch：聊天区本地化与 TUI 异常 fail-soft。 |
 
 运行：
 
