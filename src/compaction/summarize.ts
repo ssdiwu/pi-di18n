@@ -334,14 +334,143 @@ async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promi
 	}
 }
 
+// ── 富媒体安全边界 ─────────────────────────────────────────────────────
+
+// Pi core 估算图片为固定 ~4800 chars（见 pi-coding-agent compaction.estimateTokens），
+// 远低于真实 base64 payload。用序列化后的实际字节数判断是否超阈值，避免大图片
+// 跨 compaction 边界继续进入活动上下文。阈值取保守值，只拦真正的大 payload。
+export const DEFAULT_MEDIA_PAYLOAD_LIMIT = 512 * 1024; // 512 KB base64
+
+export function mediaPayloadBytes(content: any): number {
+	if (!Array.isArray(content)) return 0;
+	let bytes = 0;
+	for (const block of content) {
+		if (block?.type === "image" && typeof block?.data === "string") {
+			bytes += block.data.length;
+		} else if (block?.type === "video" && typeof block?.data === "string") {
+			bytes += block.data.length;
+		} else if (block?.type === "audio" && typeof block?.data === "string") {
+			bytes += block.data.length;
+		}
+	}
+	return bytes;
+}
+
+/**
+ * 按 session tree 的完整 turn 推进 `firstKeptEntryId`，使超大富媒体退出活动上下文。
+ *
+ * 算法：从默认保留边界向前扫，每遇到含超阈值富媒体的 toolResult，
+ * 把保留边界推进到该 toolResult 所属 turn 的下一条 user 边界（完整 turn 后），
+ * 并收集被推进掉的 entries 以纳入摘要。
+ *
+ * 不拆开 tool call/result 配对；边界只落在 user 消息或路径起点之前的安全位置。
+ */
+export function advanceBoundaryForRichMedia(
+	entries: any[],
+	defaultFirstKeptId: string,
+	limit: number = DEFAULT_MEDIA_PAYLOAD_LIMIT,
+): { firstKeptEntryId: string; pushedEntries: any[]; oversizedMedia: number; pushedTurns: number } {
+	if (!Array.isArray(entries) || entries.length === 0) {
+		return { firstKeptEntryId: defaultFirstKeptId, pushedEntries: [], oversizedMedia: 0, pushedTurns: 0 };
+	}
+
+	const idx = entries.findIndex((e) => e?.id === defaultFirstKeptId);
+	if (idx < 0) {
+		return { firstKeptEntryId: defaultFirstKeptId, pushedEntries: [], oversizedMedia: 0, pushedTurns: 0 };
+	}
+
+	let cutIndex = idx;
+	const pushed: any[] = [];
+	let oversizedMedia = 0;
+
+	for (let i = idx; i < entries.length; i++) {
+		const entry = entries[i];
+		if (!entry) continue;
+		const msg = entry.message ?? entry;
+		const bytes = mediaPayloadBytes(msg?.content);
+		if (bytes <= limit) continue;
+
+		oversizedMedia += bytes;
+		// 将该 entry 及其所属 turn 全部纳入推进；turn 终点 = 下一个 user 消息或路径末尾。
+		let turnEnd = entries.length;
+		for (let j = i + 1; j < entries.length; j++) {
+			const role = entries[j]?.message?.role;
+			if (role === "user") {
+				turnEnd = j;
+				break;
+			}
+		}
+		// 收集被推进的 entries
+		for (let k = cutIndex; k < turnEnd; k++) {
+			if (!pushed.includes(entries[k])) pushed.push(entries[k]);
+		}
+		cutIndex = turnEnd;
+	}
+
+	if (cutIndex === idx) {
+		return { firstKeptEntryId: defaultFirstKeptId, pushedEntries: [], oversizedMedia: 0, pushedTurns: 0 };
+	}
+	if (cutIndex >= entries.length) {
+		// 推进后无可保留的安全边界 → 调用方应取消。
+		return { firstKeptEntryId: "", pushedEntries: pushed, oversizedMedia, pushedTurns: countTurns(pushed) };
+	}
+	const next = entries[cutIndex];
+	return {
+		firstKeptEntryId: next?.id ?? defaultFirstKeptId,
+		pushedEntries: pushed,
+		oversizedMedia,
+		pushedTurns: countTurns(pushed),
+	};
+}
+
+function countTurns(entries: any[]): number {
+	// 一个 turn = 一个 user 消息及其后续非 user 消息。推进掉的 entries 可能以
+	// assistant/toolResult 开头（split-turn 场景），此时也算一个完整 turn。
+	if (entries.length === 0) return 0;
+	let turns = 0;
+	let inTurn = false;
+	for (const e of entries) {
+		const role = e?.message?.role;
+		if (role === "user") {
+			turns++;
+			inTurn = true;
+		} else if (!inTurn) {
+			// 消息在第一个 user 之前，归入一个 split turn。
+			turns++;
+			inTurn = true;
+		}
+	}
+	return turns;
+}
+
 // ── 事件处理器（locale 由 index.ts 传入）────────────────────────────────
 
 export async function summarizeForCompaction(event: any, ctx: any, locale: string | undefined) {
 	const languageInstruction = languageInstructionForLocale(locale);
-	const conversationText = serializeAgentMessages([
+
+	const branchEntries: any[] = Array.isArray(event?.branchEntries) ? event.branchEntries : [];
+	const guard = advanceBoundaryForRichMedia(branchEntries, event.preparation.firstKeptEntryId);
+
+	if (guard.oversizedMedia > 0 && !guard.firstKeptEntryId) {
+		try {
+			ctx?.ui?.notify?.(
+				`pi-di18n compaction cancelled: rich-media payload (${guard.oversizedMedia} bytes) cannot be safely pushed out of context.`,
+				"warning",
+			);
+		} catch {
+			// TUI notification is best-effort.
+		}
+		return { cancel: true };
+	}
+
+	// 被推进掉的完整 turn 在时间线上晚于 pi core 默认要摘要的消息，
+	// 拼接顺序为：原 messagesToSummarize → turnPrefixMessages → pushedEntries。
+	const allMessagesToSummarize = [
 		...event.preparation.messagesToSummarize,
 		...event.preparation.turnPrefixMessages,
-	]);
+		...guard.pushedEntries.map(entryToAgentMessage).filter(Boolean),
+	];
+	const conversationText = serializeAgentMessages(allMessagesToSummarize);
 
 	const prompt = `${languageInstruction}\n\n${buildCompactionPrompt({
 		locale,
@@ -353,18 +482,27 @@ export async function summarizeForCompaction(event: any, ctx: any, locale: strin
 	const result = await runSummary(ctx, prompt, event.signal);
 	if (!result.ok) return { cancel: true };
 
+	const details: Record<string, unknown> = {
+		locale,
+		languageInstruction,
+		provider: result.model.provider,
+		model: result.model.model,
+		source: "pi-di18n",
+	};
+	if (guard.oversizedMedia > 0) {
+		details.mediaGuard = {
+			pushedTurns: guard.pushedTurns,
+			oversizedMedia: guard.oversizedMedia,
+			firstKeptEntryId: guard.firstKeptEntryId,
+		};
+	}
+
 	return {
 		compaction: {
 			summary: result.text,
-			firstKeptEntryId: event.preparation.firstKeptEntryId,
+			firstKeptEntryId: guard.firstKeptEntryId || event.preparation.firstKeptEntryId,
 			tokensBefore: event.preparation.tokensBefore,
-			details: {
-				locale,
-				languageInstruction,
-				provider: result.model.provider,
-				model: result.model.model,
-				source: "pi-di18n",
-			},
+			details,
 		},
 	};
 }
