@@ -4,6 +4,11 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.4 - 2026-07-13
+
+### Fixed
+- Prevented failed compaction summaries from falling back to the current session model for a second request; added provider/model diagnostics, error classification, and pi 0.79 `Cache miss notices` / `Output padding` localization coverage.
+
 ## 0.1.3 - 2026-06-25
 
 ### Fixed
