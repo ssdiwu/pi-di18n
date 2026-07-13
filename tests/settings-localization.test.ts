@@ -39,6 +39,7 @@ describe("pi 0.79 new settings localization", () => {
 			"用户消息、助手消息和思考内容的水平内距",
 		);
 		expect(translateUiLineForTest(zhCN, "→ Cache miss notices false")).toBe("→ 缓存未命中提示 关");
+		expect(translateUiLineForTest(zhCN, "→ Cache miss notices true")).toBe("→ 缓存未命中提示 开");
 		expect(translateUiLineForTest(zhCN, "  Output padding 1")).toBe("  输出内距 1");
 	});
 
