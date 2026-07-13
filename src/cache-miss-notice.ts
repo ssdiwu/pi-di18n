@@ -101,11 +101,26 @@ export function parseCacheMissNotice(text: string): CacheMissNotice | null {
 	return null;
 }
 
+function formatCost(locale: string, cost: string | undefined): string {
+	if (!cost) return "";
+	const canonical = canonicalizeLocale(locale);
+	if (canonical === "zh-CN" || canonical.startsWith("zh-CN-")) return `（约 $${cost}）`;
+	if (canonical === "zh-TW" || canonical.startsWith("zh-TW-")) return `（約 $${cost}）`;
+	if (canonical === "zh-hans" || canonical.startsWith("zh-hans-")) return `（约 $${cost}）`;
+	if (canonical === "zh-hant" || canonical.startsWith("zh-hant-")) return `（約 $${cost}）`;
+	if (canonical === "ja" || canonical.startsWith("ja-")) return `（約 $${cost}）`;
+	if (canonical === "ko" || canonical.startsWith("ko-")) return `（약 $${cost}）`;
+	if (canonical === "fr" || canonical.startsWith("fr-")) return ` (≈ $${cost})`;
+	if (canonical === "es" || canonical.startsWith("es-")) return ` (~$${cost})`;
+	if (canonical === "de" || canonical.startsWith("de-")) return ` (~$${cost})`;
+	return ` (~$${cost})`;
+}
+
 export function formatCacheMissNotice(locale: string, notice: CacheMissNotice): string {
 	const templates = templatesFor(locale);
 	const template = notice.kind === "model-switch" ? templates.modelSwitch : notice.kind === "idle" ? templates.idle : templates.generic;
 	return template
 		.replaceAll("{minutes}", String(notice.minutes ?? 0))
 		.replaceAll("{tokens}", notice.tokens)
-		.replaceAll("{cost}", notice.cost ? ` (~$${notice.cost})` : "");
+		.replaceAll("{cost}", formatCost(locale, notice.cost));
 }

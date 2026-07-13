@@ -1802,7 +1802,14 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 			patchMethod(InteractiveMode.prototype, "addCacheMissNotice", (orig) =>
 				function patchedAddCacheMissNotice(this: any, miss: any) {
 					const api = getCurrentI18n();
-					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+					let before = -1;
+					try {
+						const children = this?.chatContainer?.children;
+						if (Array.isArray(children)) before = children.length;
+					} catch (e) {
+						// Snapshot failure must not prevent the upstream method from running.
+						probeHook("interactive.addCacheMissNotice", "unsafe", String(e));
+					}
 					let ret: any;
 					try {
 						ret = orig.call(this, miss);
@@ -1812,18 +1819,20 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 						probeHook("interactive.addCacheMissNotice", "unsafe", String(e));
 						return;
 					}
-					if (!api || !Array.isArray(this?.chatContainer?.children)) return ret;
+					if (!api || before < 0) return ret;
 					try {
-						for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
-							const child = this.chatContainer.children[i];
+						const children = this?.chatContainer?.children;
+						if (!Array.isArray(children)) return ret;
+						for (let i = children.length - 1; i >= before; i--) {
+							const child = children[i];
 							if (typeof child?.setText !== "function") continue;
 							const current = typeof child.getText === "function" ? child.getText() : child.text;
 							if (typeof current !== "string") continue;
 							const parsed = parseCacheMissNotice(current);
 							if (!parsed) continue;
 							const translated = formatCacheMissNotice(api.getLocale(), parsed);
-							const leading = current.match(/^(?:\\u001b\\[[0-?]*[ -/]*[@-~])+/)?.[0] ?? "";
-							const trailing = current.match(/(?:\\u001b\\[[0-?]*[ -/]*[@-~])+$/)?.[0] ?? "";
+							const leading = current.match(/^(?:\u001b\[[0-?]*[ -/]*[@-~])+/)?.[0] ?? "";
+							const trailing = current.match(/(?:\u001b\[[0-?]*[ -/]*[@-~])+$/)?.[0] ?? "";
 							child.setText(`${leading}${translated}${trailing}`);
 							probeHit("interactive.addCacheMissNotice", translated !== stripAnsi(current));
 							break;
