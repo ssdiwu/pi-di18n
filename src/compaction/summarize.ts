@@ -200,11 +200,11 @@ export function classifyCompactionError(error: unknown): CompactionFailureKind {
 	const message = errorText(error);
 
 	// Prefer a known provider error code over generic status or message text.
-	if (/usage|quota|billing|out.?of.?budget|insufficient/.test(code)) return "usage_quota";
+	if (/usage|quota|billing|out.?of.?budget|insufficient[_ -]?(?:quota|balance)/.test(code)) return "usage_quota";
 	if (/model[\s_-]*(?:not[\s_-]*found|unavailable)|unknown.?model|invalid.?model/.test(code)) {
 		return "model_unavailable";
 	}
-	if (/auth|credential|api.?key|unauthori[sz]ed|forbidden/.test(code)) return "auth";
+	if (/auth|credential|api.?key|unauthori[sz]ed|forbidden|insufficient[_ -]?scope/.test(code)) return "auth";
 	if (/rate.?limit|too.?many|throttl/.test(code)) return "rate_limit";
 	if (/econn|enotfound|network|timeout|timed.?out|socket|websocket|connection/.test(code)) return "network";
 
@@ -291,6 +291,20 @@ async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promi
 				maxTokens: Math.min(8192, model.maxTokens > 0 ? model.maxTokens : 8192),
 			},
 		);
+
+		if (response.stopReason === "error" || response.stopReason === "aborted") {
+			const result: Extract<SummaryResult, { ok: false }> = {
+				ok: false,
+				kind:
+					response.stopReason === "aborted" || signal?.aborted
+						? "cancelled"
+						: classifyCompactionError(response.errorMessage),
+				model: info,
+				message: response.errorMessage || `Provider returned stop reason ${response.stopReason}`,
+			};
+			notifyFailure(ctx, result);
+			return result;
+		}
 
 		const text = response.content
 			.filter((c: any) => c.type === "text")

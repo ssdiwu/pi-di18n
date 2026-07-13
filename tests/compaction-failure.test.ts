@@ -72,10 +72,25 @@ describe("compaction failure strategy", () => {
 		expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("test-provider/session-model"), "warning");
 	});
 
-	it("keeps successful summaries as extension compaction results", async () => {
+	it.each(["manual", "threshold"] as const)("cancels %s when complete resolves an error response", async (reason) => {
+		completeMock.mockResolvedValueOnce({
+			stopReason: "error",
+			errorMessage: "rate limit exceeded",
+			content: [{ type: "text", text: "partial text must not become a summary" }],
+		});
+		const ctx = makeContext();
+
+		const result = await summarizeForCompaction(makeEvent(reason), ctx, "zh-CN");
+
+		expect(completeMock).toHaveBeenCalledTimes(1);
+		expect(result).toEqual({ cancel: true });
+		expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("[rate_limit]"), "warning");
+	});
+
+	it.each(["manual", "threshold"] as const)("keeps successful %s summaries as extension compaction results", async (reason) => {
 		completeMock.mockResolvedValueOnce({ content: [{ type: "text", text: "## Summary" }] });
 
-		const result = await summarizeForCompaction(makeEvent("manual"), makeContext(), "zh-CN");
+		const result = await summarizeForCompaction(makeEvent(reason), makeContext(), "zh-CN");
 
 		expect(completeMock).toHaveBeenCalledTimes(1);
 		expect(result).toMatchObject({
@@ -111,6 +126,7 @@ describe("compaction failure strategy", () => {
 			"rate_limit",
 		);
 		expect(classifyCompactionError({ status: 401, code: "bad_request", message: "quota exceeded" })).toBe("auth");
+		expect(classifyCompactionError({ status: 403, code: "insufficient_scope", message: "scope required" })).toBe("auth");
 
 		const resolved = { provider: "override-provider", id: "override-model", maxTokens: 8192 };
 		getModelMock.mockReturnValueOnce(resolved);
