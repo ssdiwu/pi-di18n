@@ -688,8 +688,12 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			return await summarizeForCompaction(event, ctx, i18n.getLocale());
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			ctx.ui.notify(`pi-di18n compaction failed: ${message}`, "warning");
-			return undefined;
+			try {
+				ctx?.ui?.notify?.(`pi-di18n compaction failed [unknown]: ${message}`, "warning");
+			} catch {
+				// TUI notification is best-effort.
+			}
+			return { cancel: true };
 		}
 	});
 
@@ -698,8 +702,12 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			return await summarizeForTree(event, ctx, i18n.getLocale());
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			ctx.ui.notify(`pi-di18n branch summary failed: ${message}`, "warning");
-			return undefined;
+			try {
+				ctx?.ui?.notify?.(`pi-di18n branch summary failed [unknown]: ${message}`, "warning");
+			} catch {
+				// TUI notification is best-effort.
+			}
+			return { cancel: true };
 		}
 	});
 

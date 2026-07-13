@@ -21,3 +21,5 @@ pi-compaction-i18n 原本独立读环境变量 / 独立 config 决定 locale。�
 ## 可选 model override
 
 摘要用的 LLM 模型默认跟随当前会话；可在 `~/.pi/agent/state/pi-di18n/compaction.json` 配置 `model`（`provider/modelId`）覆盖。
+
+总结请求失败时，扩展会记录实际 `provider/model` 并将错误分类为模型不可用、认证失败、usage/quota、限流、网络、取消或未知；随后返回 `{ cancel: true }`，阻止 pi core 使用当前会话模型重复请求。成功摘要的 `details` 也包含实际 `provider` 和 `model`。
