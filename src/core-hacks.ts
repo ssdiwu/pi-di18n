@@ -7,6 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveRuntimeCommandDescription } from "./ui-localize/localize";
 import { getActiveUiCache } from "./ui-localize/cache";
+import { formatCacheMissNotice, parseCacheMissNotice, stripAnsi } from "./cache-miss-notice";
 
 const g = globalThis as any;
 const STATE_KEY = "__pi_i18n_core_hacks__";
@@ -1798,6 +1799,44 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 				},
 				"interactive.showWarning",
 			);
+			patchMethod(InteractiveMode.prototype, "addCacheMissNotice", (orig) =>
+				function patchedAddCacheMissNotice(this: any, miss: any) {
+					const api = getCurrentI18n();
+					const before = Array.isArray(this?.chatContainer?.children) ? this.chatContainer.children.length : 0;
+					let ret: any;
+					try {
+						ret = orig.call(this, miss);
+					} catch (e) {
+						// Cache miss notice is diagnostic UI only. A core TUI failure must not
+						// abort the session or change the cache accounting result.
+						probeHook("interactive.addCacheMissNotice", "unsafe", String(e));
+						return;
+					}
+					if (!api || !Array.isArray(this?.chatContainer?.children)) return ret;
+					try {
+						for (let i = this.chatContainer.children.length - 1; i >= before; i--) {
+							const child = this.chatContainer.children[i];
+							if (typeof child?.setText !== "function") continue;
+							const current = typeof child.getText === "function" ? child.getText() : child.text;
+							if (typeof current !== "string") continue;
+							const parsed = parseCacheMissNotice(current);
+							if (!parsed) continue;
+							const translated = formatCacheMissNotice(api.getLocale(), parsed);
+							const leading = current.match(/^(?:\\u001b\\[[0-?]*[ -/]*[@-~])+/)?.[0] ?? "";
+							const trailing = current.match(/(?:\\u001b\\[[0-?]*[ -/]*[@-~])+$/)?.[0] ?? "";
+							child.setText(`${leading}${translated}${trailing}`);
+							probeHit("interactive.addCacheMissNotice", translated !== stripAnsi(current));
+							break;
+						}
+					} catch (e) {
+						// Keep the upstream English text when a Text component or renderer
+						// rejects mutation. Never turn localization into a session failure.
+						probeHook("interactive.addCacheMissNotice", "unsafe", String(e));
+					}
+					return ret;
+				},
+				"interactive.addCacheMissNotice",
+			);
 			patchMethod(InteractiveMode.prototype, "showError", (orig) =>
 				function patchedShowError(this: any, message: string) {
 					const api = getCurrentI18n();
@@ -2109,6 +2148,7 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 			restore(InteractiveMode.prototype, "showStatus");
 			restore(InteractiveMode.prototype, "showWarning");
 			restore(InteractiveMode.prototype, "showError");
+			restore(InteractiveMode.prototype, "addCacheMissNotice");
 			restore(InteractiveMode.prototype, "setExtensionStatus");
 			restore(InteractiveMode.prototype, "showExtensionNotify");
 			restore(InteractiveMode.prototype, "showExtensionSelector");
