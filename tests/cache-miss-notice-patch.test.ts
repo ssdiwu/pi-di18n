@@ -31,6 +31,7 @@ async function setup(locale = "zh-CN") {
 	// its exact output so the patch contract is testable on both package layouts.
 	if (!(InteractiveMode.prototype as any).addCacheMissNotice) {
 		(InteractiveMode.prototype as any).addCacheMissNotice = function (miss: any) {
+			this.originalCalls = (this.originalCalls ?? 0) + 1;
 			if (miss.missedTokens < 20_000 && miss.missedCost < 0.1) return;
 			const cost = miss.missedCost >= 0.01 ? ` (~$${miss.missedCost.toFixed(2)})` : "";
 			const reBilled = `${formatTokensForTest(miss.missedTokens)} tokens re-billed${cost}`;
@@ -38,7 +39,7 @@ async function setup(locale = "zh-CN") {
 			if (miss.modelChanged) label = "Cache miss after model switch";
 			else if (miss.idleMs >= 5 * 60_000) label = `Cache miss after ${Math.round(miss.idleMs / 60_000)}m idle`;
 			this.chatContainer.addChild({
-				text: `${label}: ${reBilled}`,
+				text: `\u001b[38;2;255;180;0m${label}: ${reBilled}\u001b[39m`,
 				getText() { return this.text; },
 				setText(value: string) { this.text = value; },
 			});
@@ -72,8 +73,8 @@ describe("cache miss notice core patch", () => {
 		});
 
 		const text = children.at(-1)?.getText?.() ?? children.at(-1)?.text;
-		expect(text).toContain("切换模型后缓存未命中");
-		expect(text).toContain("25k");
+		expect(text).toMatch(/^\u001b\[/);
+		expect(text).toContain("切换模型后缓存未命中");		expect(text).toContain("25k");
 		expect(text).toContain("0.32");
 		expect(text).not.toContain("Cache miss");
 		await uninstallCoreHacks();
@@ -101,12 +102,22 @@ describe("cache miss notice core patch", () => {
 		await uninstallCoreHacks();
 	});
 
-	it("does not throw when upstream chat rendering fails", async () => {
+	it("calls the upstream method even when the children snapshot getter fails", async () => {
 		await setup("zh-CN");
 		const { InteractiveMode } = await import(
 			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
 		);
-		const mode = { chatContainer: { children: [], addChild() { throw new Error("Spacer is not defined"); } } };
+		const children: any[] = [];
+		let reads = 0;
+		const chatContainer = {
+			get children() {
+				reads++;
+				if (reads === 1) throw new Error("children getter failed");
+				return children;
+			},
+			addChild(child: any) { children.push(child); },
+		};
+		const mode: any = { chatContainer, originalCalls: 0 };
 
 		expect(() => (InteractiveMode.prototype as any).addCacheMissNotice.call(mode, {
 			missedTokens: 25_000,
@@ -114,6 +125,35 @@ describe("cache miss notice core patch", () => {
 			modelChanged: false,
 			idleMs: 0,
 		})).not.toThrow();
+		expect(mode.originalCalls).toBe(1);
+		expect(children).toHaveLength(1);
+		await uninstallCoreHacks();
+	});
+
+	it("keeps the upstream notice and does not throw when setText fails", async () => {
+		await setup("zh-CN");
+		const { InteractiveMode } = await import(
+			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+		);
+		const children: any[] = [];
+		const mode: any = {
+			originalCalls: 0,
+			chatContainer: {
+				children,
+				addChild(child: any) {
+					child.setText = () => { throw new Error("renderer rejected text"); };
+					children.push(child);
+				},
+			},
+		};
+
+		expect(() => (InteractiveMode.prototype as any).addCacheMissNotice.call(mode, {
+			missedTokens: 25_000,
+			missedCost: 0.32,
+			modelChanged: false,
+			idleMs: 0,
+		})).not.toThrow();
+		expect(mode.originalCalls).toBe(1);
 		await uninstallCoreHacks();
 	});
 });
