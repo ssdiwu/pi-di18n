@@ -130,6 +130,29 @@ describe("cache miss notice core patch", () => {
 		await uninstallCoreHacks();
 	});
 
+	it("keeps the upstream notice when locale template formatting throws", async () => {
+		const i18n = await setup("zh-CN");
+		const { InteractiveMode } = await import(
+			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+		);
+		const children: any[] = [];
+		const mode: any = {
+			originalCalls: 0,
+			chatContainer: { children, addChild(child: any) { children.push(child); } },
+		};
+		(i18n as any).getLocale = () => { throw new Error("template locale failed"); };
+
+		expect(() => (InteractiveMode.prototype as any).addCacheMissNotice.call(mode, {
+			missedTokens: 25_000,
+			missedCost: 0.32,
+			modelChanged: false,
+			idleMs: 0,
+		})).not.toThrow();
+		expect(mode.originalCalls).toBe(1);
+		expect(children.at(-1)?.getText?.() ?? children.at(-1)?.text).toContain("Cache miss");
+		await uninstallCoreHacks();
+	});
+
 	it("keeps the upstream notice and does not throw when setText fails", async () => {
 		await setup("zh-CN");
 		const { InteractiveMode } = await import(
