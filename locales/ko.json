@@ -77,6 +77,17 @@
     "tool.common.error": "오류",
     "tool.common.truncated": "잘림",
 
+    "tool.locale.compact": "로캘: {locale}",
+    "tool.locale.current": "현재 로캘: {locale}",
+    "tool.locale.source": "출처: {source}",
+    "tool.locale.fallback": "대체 로캘: {locale}",
+    "tool.locale.available": "내장 UI 로캘({count}): {locales}",
+    "tool.locale.source.project": "프로젝트 설정",
+    "tool.locale.source.user": "사용자 설정",
+    "tool.locale.source.environment": "환경",
+    "tool.locale.source.default": "기본값",
+    "tool.locale.source.command": "/lang 명령",
+
     "tool.read.label": "읽기",
     "tool.read.call": "읽기 {path}",
     "tool.read.lines": "{count}줄",

@@ -77,6 +77,17 @@
     "tool.common.error": "Erro",
     "tool.common.truncated": "truncado",
 
+    "tool.locale.compact": "Localidade: {locale}",
+    "tool.locale.current": "Localidade atual: {locale}",
+    "tool.locale.source": "Origem: {source}",
+    "tool.locale.fallback": "Localidade de fallback: {locale}",
+    "tool.locale.available": "Localidades de UI integradas ({count}): {locales}",
+    "tool.locale.source.project": "configuração do projeto",
+    "tool.locale.source.user": "configuração do usuário",
+    "tool.locale.source.environment": "ambiente",
+    "tool.locale.source.default": "padrão",
+    "tool.locale.source.command": "comando /lang",
+
     "tool.read.label": "ler",
     "tool.read.call": "ler {path}",
     "tool.read.lines": "{count} linhas",

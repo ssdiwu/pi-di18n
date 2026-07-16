@@ -77,6 +77,17 @@
     "tool.common.error": "Fehler",
     "tool.common.truncated": "gekürzt",
 
+    "tool.locale.compact": "Gebietsschema: {locale}",
+    "tool.locale.current": "Aktuelles Gebietsschema: {locale}",
+    "tool.locale.source": "Quelle: {source}",
+    "tool.locale.fallback": "Fallback-Gebietsschema: {locale}",
+    "tool.locale.available": "Integrierte UI-Gebietsschemata ({count}): {locales}",
+    "tool.locale.source.project": "Projektkonfiguration",
+    "tool.locale.source.user": "Benutzerkonfiguration",
+    "tool.locale.source.environment": "Umgebung",
+    "tool.locale.source.default": "Standard",
+    "tool.locale.source.command": "/lang-Befehl",
+
     "tool.read.label": "lesen",
     "tool.read.call": "lesen {path}",
     "tool.read.lines": "{count} Zeilen",

@@ -73,6 +73,56 @@ describe("core-hacks slash command patch", () => {
 		expect(translateUiLineForTest(i18n as any, "No sessions in current folder. Press Tab to view all.")).toBe("当前文件夹中没有会话。按 Tab 查看全部。");
 	});
 
+	it("translates Pi 0.80 session cache breakdown without mixed English labels", () => {
+		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
+		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
+		expect(i18n.registerBundle(loadBundle("zh-CN")).ok).toBe(true);
+
+		const sessionReport = [
+			"Session Info",
+			"Messages",
+			"Total: 138",
+			"User: 4",
+			"Assistant: 61",
+			"Tools: 73 calls, 73 results",
+			"Tokens",
+			"Input: 3,985,016",
+			"  Cached: 3,821,056 (95.9%)",
+			"  Uncached: 163,960 (46,652 written to cache)",
+			"Output: 20,461",
+			"Total: 4,005,477",
+			"Cost",
+			"Total: $1.672",
+			"Cache Re-billed: $0.105 (46,652 tokens, 1 miss)",
+		].join("\n");
+
+		expect(translateUiLineForTest(i18n as any, sessionReport)).toBe([
+			"会话信息",
+			"消息",
+			"总计： 138",
+			"用户： 4",
+			"助手： 61",
+			"工具： 73 次调用，73 个结果",
+			"令牌",
+			"输入： 3,985,016",
+			"  已缓存： 3,821,056 (95.9%)",
+			"  未缓存： 163,960 (46,652 已写入缓存)",
+			"输出： 20,461",
+			"总计： 4,005,477",
+			"费用",
+			"总计： $1.672",
+			"缓存重计费： $0.105 (46,652 令牌，1 次未命中)",
+		].join("\n"));
+		expect(translateUiLineForTest(i18n as any, "partial results or timeout errors")).toBe("partial results or timeout errors");
+		expect(translateUiLineForTest(i18n as any, "Reloaded keybindings, extensions, skills, prompts, themes, and context files")).toBe("已重新加载：按键绑定、扩展、技能、提示词、主题和上下文文件");
+	});
+
+	it("keeps the Pi 0.80 session cache breakdown localized for zh-TW", () => {
+		const i18n = new I18nRegistry({ locale: "zh-TW", fallbackLocale: "en" });
+		const line = "Tools: 73 calls, 73 results\nTokens\n  Cached: 3,821,056 (95.9%)\nCache Re-billed: $0.105 (46,652 tokens, 1 miss)";
+		expect(translateUiLineForTest(i18n as any, line)).toBe("工具：73 次呼叫，73 個結果\n令牌\n  已快取：3,821,056 (95.9%)\n快取重新計費：$0.105 (46,652 令牌，1 次未命中)");
+	});
+
 	it("patches pi 0.79 builtin slash descriptions for zh-CN and reports primary mode", async () => {
 		const piDistCli = join(process.cwd(), "node_modules", "@earendil-works", "pi-coding-agent", "dist", "cli.js");
 		if (!process.argv.includes(piDistCli)) process.argv.unshift(piDistCli);

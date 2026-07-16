@@ -980,9 +980,18 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 	out = out.replace(/\bAssistant:\s/g, "助理：");
 	out = out.replace(/\bTool Calls:\s/g, "工具呼叫：");
 	out = out.replace(/\bTool Results:\s/g, "工具結果：");
+	out = out.replace(/\bTools:\s/g, "工具：");
+	out = out.replace(/\bTokens\b/g, "令牌");
 	out = out.replace(/\bInput:\s/g, "輸入：");
 	out = out.replace(/\bOutput:\s/g, "輸出：");
 	out = out.replace(/\bCache Read:\s/g, "快取讀取：");
+	out = out.replace(/\bCache Write:\s/g, "快取寫入：");
+	out = out.replace(/\bCached:\s/g, "已快取：");
+	out = out.replace(/\bUncached:\s/g, "未快取：");
+	out = out.replace(/\bCache Re-billed:\s/g, "快取重新計費：");
+	out = out.replace(/(\d[\d,]*)\s+calls,\s*(\d[\d,]*)\s+results/g, "$1 次呼叫，$2 個結果");
+	out = out.replace(/(\d[\d,]*)\s+written to cache/g, "$1 已寫入快取");
+	out = out.replace(/(\d[\d,]*)\s+tokens,\s*(\d+)\s+miss(?:es)?/g, "$1 令牌，$2 次未命中");
 	out = out.replace(/\bTotal:\s/g, "總計：");
 	out = out.replace(/Compacting context\.\.\. \(escape to cancel\)/gi, "正在壓縮上下文...（Esc 可取消）");
 
@@ -1138,6 +1147,13 @@ function postprocessZhCnUiLine(line: string): string {
 	s = s.replaceAll("名称： All", "名称： 全部");
 	s = s.replace(/名称：\s*All/g, "名称： 全部");
 	s = s.replaceAll("| ○ All", "| ○ 全部");
+
+	// Pi 0.80 /session cache breakdown. Keep the numeric context in each pattern
+	// so ordinary core UI such as changelog prose is never rewritten.
+	s = s.replace(/(\d[\d,]*)\s+calls,\s*(\d[\d,]*)\s+results/g, "$1 次调用，$2 个结果");
+	s = s.replace(/(\d[\d,]*)\s+written to cache/g, "$1 已写入缓存");
+	s = s.replace(/(\d[\d,]*)\s+tokens,\s*(\d+)\s+miss(?:es)?/g, "$1 令牌，$2 次未命中");
+
 	s = s.replace(/导出会话失败：\s+/g, "导出会话失败：");
 	s = s.replaceAll("Scope: ", "范围：");
 	s = s.replaceAll(" (all/scoped)", "（全部/已筛选）");

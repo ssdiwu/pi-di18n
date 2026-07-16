@@ -45,7 +45,7 @@ pi install npm:pi-di18n
 pi install /absolute/path/to/pi-di18n
 ```
 
-然后重启 pi，或执行 `/reload`。
+然后重启 pi。`/reload` 可重新加载扩展资源；但修改 `core-hacks` 后必须重启 pi，因为其 monkeypatch（猴子补丁）保留在当前进程中。
 
 只测试当前 checkout、且不加载已安装扩展：
 
@@ -131,8 +131,8 @@ npm pack --dry-run
 当前验证基线：
 
 ```text
-Test Files  8 passed (8)
-Tests       41 passed (41)
+Test Files  17 passed (17)
+Tests       88 passed (88)
 ```
 
 详细验证记录见 [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md)。

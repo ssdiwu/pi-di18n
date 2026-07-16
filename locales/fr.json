@@ -77,6 +77,17 @@
     "tool.common.error": "Erreur",
     "tool.common.truncated": "tronqué",
 
+    "tool.locale.compact": "Paramètres régionaux : {locale}",
+    "tool.locale.current": "Paramètres régionaux actuels : {locale}",
+    "tool.locale.source": "Source : {source}",
+    "tool.locale.fallback": "Paramètres régionaux de secours : {locale}",
+    "tool.locale.available": "Paramètres régionaux d’interface intégrés ({count}) : {locales}",
+    "tool.locale.source.project": "configuration du projet",
+    "tool.locale.source.user": "configuration utilisateur",
+    "tool.locale.source.environment": "environnement",
+    "tool.locale.source.default": "par défaut",
+    "tool.locale.source.command": "commande /lang",
+
     "tool.read.label": "lire",
     "tool.read.call": "lire {path}",
     "tool.read.lines": "{count} lignes",

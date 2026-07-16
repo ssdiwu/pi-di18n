@@ -4,6 +4,12 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.8 - 2026-07-16
+
+### Changed
+- **工具结果人类可读投影**：`i18n_get_locale` 增加本地化的折叠与展开文字投影；折叠使用实际快捷键提示，展开时显示解析来源、fallback（回退语言）和内置 UI 语言包，避免直接展示结构化 `details`。
+- **Pi 0.80 `/session` 本地化**：补齐工具、缓存明细、token（令牌）和缓存重计费标签，避免中文界面混杂英文统计文案。
+
 ## 0.1.7 - 2026-07-13
 
 ### Tests

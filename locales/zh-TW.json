@@ -100,6 +100,17 @@
     "tool.common.error": "錯誤",
     "tool.common.truncated": "已截斷",
 
+    "tool.locale.compact": "語言：{locale}",
+    "tool.locale.current": "目前語言：{locale}",
+    "tool.locale.source": "來源：{source}",
+    "tool.locale.fallback": "回退語言：{locale}",
+    "tool.locale.available": "內建 UI 語言（{count}）：{locales}",
+    "tool.locale.source.project": "專案設定",
+    "tool.locale.source.user": "使用者設定",
+    "tool.locale.source.environment": "環境變數",
+    "tool.locale.source.default": "預設值",
+    "tool.locale.source.command": "/lang 指令",
+
     "tool.read.label": "讀取",
     "tool.read.call": "讀取 {path}",
     "tool.read.lines": "{count} 行",

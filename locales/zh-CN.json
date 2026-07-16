@@ -79,6 +79,17 @@
     "tool.common.error": "错误",
     "tool.common.truncated": "已截断",
 
+    "tool.locale.compact": "语言：{locale}",
+    "tool.locale.current": "当前语言：{locale}",
+    "tool.locale.source": "来源：{source}",
+    "tool.locale.fallback": "回退语言：{locale}",
+    "tool.locale.available": "内置 UI 语言（{count}）：{locales}",
+    "tool.locale.source.project": "项目配置",
+    "tool.locale.source.user": "用户配置",
+    "tool.locale.source.environment": "环境变量",
+    "tool.locale.source.default": "默认值",
+    "tool.locale.source.command": "/lang 命令",
+
     "tool.read.label": "读取",
     "tool.read.call": "读取 {path}",
     "tool.read.lines": "{count} 行",

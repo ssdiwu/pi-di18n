@@ -45,7 +45,7 @@ For local development:
 pi install /absolute/path/to/pi-di18n
 ```
 
-Then restart pi, or run `/reload`.
+Then restart pi. `/reload` reloads extension resources, but after editing `core-hacks` you must restart pi because its monkeypatches remain in the current process.
 
 To test this checkout without loading installed extensions:
 

@@ -39,7 +39,7 @@ pi install npm:pi-di18n
 pi install /absolute/path/to/pi-di18n
 ```
 
-설치 후 pi를 재시작하거나 `/reload`를 실행하세요.
+설치 후 pi를 재시작하세요. `/reload`는 확장 리소스를 다시 불러오지만, `core-hacks`를 수정한 뒤에는 monkeypatch(몽키 패치)가 현재 프로세스에 남아 있으므로 pi를 재시작해야 합니다.
 
 현재 checkout만 로드해 테스트하려면:
 
@@ -114,8 +114,8 @@ npm pack --dry-run
 현재 검증 기준:
 
 ```text
-Test Files  8 passed (8)
-Tests       41 passed (41)
+Test Files  17 passed (17)
+Tests       88 passed (88)
 ```
 
 자세한 검증 기록은 [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md)를 참고하세요.

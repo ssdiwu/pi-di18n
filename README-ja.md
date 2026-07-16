@@ -39,7 +39,7 @@ pi install npm:pi-di18n
 pi install /absolute/path/to/pi-di18n
 ```
 
-インストール後、pi を再起動するか `/reload` を実行します。
+インストール後、pi を再起動してください。`/reload` は拡張リソースを再読み込みしますが、`core-hacks` を編集した場合はモンキーパッチが現在のプロセスに残るため、pi の再起動が必要です。
 
 現在の checkout だけを読み込んでテストする場合:
 
@@ -114,8 +114,8 @@ npm pack --dry-run
 現在の検証基準:
 
 ```text
-Test Files  8 passed (8)
-Tests       41 passed (41)
+Test Files  17 passed (17)
+Tests       88 passed (88)
 ```
 
 詳細は [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) を参照してください。

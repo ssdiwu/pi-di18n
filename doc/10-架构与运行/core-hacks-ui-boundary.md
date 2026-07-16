@@ -11,6 +11,7 @@
 ## 边界原则
 
 - `core-hacks` 只能影响 UI 展示，不能影响 `/lang` 命令结果、locale 状态、缓存状态或后续命令执行。
+- `core-hacks` 的 monkeypatch（猴子补丁）存活于 Pi 进程；修改其源码后必须重启 Pi，`/reload` 不保证替换已安装的 patch 闭包或全局语言包缓存。
 - 上游 TUI 渲染异常时，扩展必须 fail-soft（失败降级）：降级显示、跳过该 UI 更新或回退英文原文。
 - 状态更新、缓存写入、语言切换结果必须先于或独立于 UI patch 渲染。
 - `patchedShowError`、`patchedShowWarning`、selector 和 slash 描述 patch 路径必须显式容错。

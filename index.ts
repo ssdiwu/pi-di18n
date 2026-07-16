@@ -1,5 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { DynamicBorder } from "@earendil-works/pi-coding-agent";
+import { DynamicBorder, keyHint } from "@earendil-works/pi-coding-agent";
 import { Container, Key, matchesKey, Spacer, Text } from "@earendil-works/pi-tui";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -119,11 +119,13 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 
 	// 3) Persisted + env locale selection
 	let runtimeConfig: I18nConfig = {};
+	let localeSource: "command" | "project" | "user" | "environment" | "default" = "default";
 	const applyLocaleForCwd = (cwd: string, ctxUi?: { notify?: (m: string, t?: any) => void; setHiddenThinkingLabel?: (s?: string) => void }) => {
 		const prevLocale = i18n.getLocale();
 		const loaded = loadI18nConfig(cwd);
 		runtimeConfig = loaded.config ?? {};
 		const envLocale = detectLocaleFromEnv();
+		localeSource = loaded.config.locale ? (loaded.source === "project" ? "project" : "user") : envLocale ? "environment" : "default";
 		let chosen = loaded.config.locale ?? envLocale ?? "en";
 		// Normalize common environment locale en-SG to our compact locale tag "sg".
 		try {
@@ -450,6 +452,7 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 		}
 
 		i18n.setLocale(nextLocale);
+		localeSource = "command";
 		ctx.ui?.setHiddenThinkingLabel?.(i18n.getLocale().startsWith("zh") ? "（思考已隱藏）" : "(thinking hidden)");
 		saveUserI18nConfig({ locale: i18n.getLocale(), fallbackLocale: i18n.getFallbackLocale() });
 
@@ -728,10 +731,48 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 		description: "Get current UI locale from pi-di18n",
 		parameters: { type: "object", properties: {}, additionalProperties: false } as any,
 		async execute() {
+			const locale = i18n.getLocale();
 			return {
-				content: [{ type: "text", text: i18n.getLocale() }],
-				details: { locale: i18n.getLocale() },
+				content: [{ type: "text", text: locale }],
+				details: {
+					locale,
+					fallbackLocale: i18n.getFallbackLocale(),
+					source: localeSource,
+					shippedLocaleCount: shippedPiLocales.size,
+					shippedLocales: Array.from(shippedPiLocales).sort(),
+				},
 			};
+		},
+		renderResult(result, { expanded, isPartial }, theme) {
+			if (isPartial) return new Text(theme.fg("warning", i18n.t("pi.tool.common.running")), 0, 0);
+			const locale = result.content.find((item) => item.type === "text")?.text ?? "unknown";
+			if (!expanded) {
+				const summary = theme.fg("success", i18n.t("pi.tool.locale.compact", { locale }));
+				const expandLabel = i18n.t("pi.ui.key.expand");
+				let expandHint = expandLabel;
+				try {
+					expandHint = keyHint("app.tools.expand", expandLabel);
+				} catch {
+					// Rendering must remain available before Pi initializes the interactive theme.
+				}
+				return new Text(summary + theme.fg("dim", `  ${expandHint}`), 0, 0);
+			}
+
+			const details = result.details as { fallbackLocale?: string; source?: string; shippedLocaleCount?: number; shippedLocales?: string[] } | undefined;
+			const fallbackLocale = details?.fallbackLocale ?? "unknown";
+			const source = details?.source ?? "unknown";
+			const sourceLabel = ["project", "user", "environment", "default", "command"].includes(source)
+				? i18n.t(`pi.tool.locale.source.${source}`)
+				: source;
+			const shippedLocales = Array.isArray(details?.shippedLocales) ? details.shippedLocales : [];
+			const shippedLocaleCount = details?.shippedLocaleCount ?? shippedLocales.length;
+			const lines = [
+				theme.fg("success", i18n.t("pi.tool.locale.current", { locale })),
+				theme.fg("dim", i18n.t("pi.tool.locale.source", { source: sourceLabel })),
+				theme.fg("dim", i18n.t("pi.tool.locale.fallback", { locale: fallbackLocale })),
+				theme.fg("dim", i18n.t("pi.tool.locale.available", { count: shippedLocaleCount, locales: shippedLocales.join(", ") || "unknown" })),
+			];
+			return new Text(lines.join("\n"), 0, 0);
 		},
 	});
 }

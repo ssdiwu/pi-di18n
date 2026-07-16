@@ -77,6 +77,17 @@
     "tool.common.error": "エラー",
     "tool.common.truncated": "省略",
 
+    "tool.locale.compact": "ロケール: {locale}",
+    "tool.locale.current": "現在のロケール: {locale}",
+    "tool.locale.source": "ソース: {source}",
+    "tool.locale.fallback": "フォールバック ロケール: {locale}",
+    "tool.locale.available": "組み込み UI ロケール（{count}）: {locales}",
+    "tool.locale.source.project": "プロジェクト設定",
+    "tool.locale.source.user": "ユーザー設定",
+    "tool.locale.source.environment": "環境",
+    "tool.locale.source.default": "既定値",
+    "tool.locale.source.command": "/lang コマンド",
+
     "tool.read.label": "読み取り",
     "tool.read.call": "読み取り {path}",
     "tool.read.lines": "{count} 行",
