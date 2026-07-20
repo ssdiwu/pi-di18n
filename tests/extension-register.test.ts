@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import extension from "../index.ts";
 
@@ -33,7 +36,16 @@ describe("extension registration", () => {
 			},
 		};
 
-		extension(pi as any);
+		const stateDir = mkdtempSync(join(tmpdir(), "pi-di18n-extension-test-"));
+		const previousStateDir = process.env.PI_DI18N_STATE_DIR;
+		process.env.PI_DI18N_STATE_DIR = stateDir;
+		try {
+			extension(pi as any);
+		} finally {
+			if (previousStateDir === undefined) delete process.env.PI_DI18N_STATE_DIR;
+			else process.env.PI_DI18N_STATE_DIR = previousStateDir;
+			rmSync(stateDir, { recursive: true, force: true });
+		}
 
 		expect(hooks).toContain("session_start");
 		expect(hooks).toContain("session_before_compact");

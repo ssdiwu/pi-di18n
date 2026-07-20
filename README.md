@@ -86,6 +86,20 @@ Clear cached runtime translations:
 
 Summary localization needs no extra command. It runs automatically when `/compact` or `/tree` branch summaries are triggered, and follows the current `/lang` locale.
 
+### Coexisting with tool override extensions
+
+Pi allows an extension to replace a built-in tool, but rejects two extensions that register the same tool name. If another extension owns one of pi-di18n's localized built-in tool overrides, reserve that name in `~/.pi/agent/state/pi-di18n/config.json` or the project-local `.pi/state/pi-di18n/config.json`:
+
+```json
+{
+  "locale": "zh-CN",
+  "fallbackLocale": "en",
+  "disabledBuiltinToolOverrides": ["read", "edit"]
+}
+```
+
+Allowed values are `read`, `bash`, `edit`, and `write`; unknown values are ignored. Only the listed localized tool renderers are skipped. TUI localization, summary localization, `/lang think`, `i18n_get_locale`, and the remaining built-in tool renderers stay enabled. Reload or restart Pi after changing this extension-load setting.
+
 ## `/lang think` Behavior
 
 `/lang think` does not set a separate language. It follows the current `/lang` locale.

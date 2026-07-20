@@ -1,6 +1,7 @@
 import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
 import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
+import type { BuiltinToolOverrideName } from "./config";
 import type { I18nApi } from "./types";
 
 function shorten(s: string, max = 90): string {
@@ -99,7 +100,11 @@ export function applyLocalizedHeader(
 	});
 }
 
-export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void {
+export function installLocalizedToolsOnce(
+	pi: ExtensionAPI,
+	i18n: I18nApi,
+	disabledTools: ReadonlySet<BuiltinToolOverrideName> = new Set(),
+): void {
 	if (_toolsInstalled) return;
 	_toolsInstalled = true;
 
@@ -107,9 +112,13 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 	const baseCwd = process.cwd();
 
 	const register = () => {
+		const registerBuiltinTool = (name: BuiltinToolOverrideName, tool: any) => {
+			if (!disabledTools.has(name)) pi.registerTool(tool);
+		};
+
 		// --- read ---
 		const baseRead = createReadTool(baseCwd);
-		pi.registerTool({
+		registerBuiltinTool("read", {
 			name: "read",
 			label: i18n.t("pi.tool.read.label"),
 			description: baseRead.description,
@@ -158,7 +167,7 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 
 		// --- bash ---
 		const baseBash = createBashTool(baseCwd);
-		pi.registerTool({
+		registerBuiltinTool("bash", {
 			name: "bash",
 			label: i18n.t("pi.tool.bash.label"),
 			description: baseBash.description,
@@ -193,7 +202,7 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 
 		// --- edit ---
 		const baseEdit = createEditTool(baseCwd);
-		pi.registerTool({
+		registerBuiltinTool("edit", {
 			name: "edit",
 			label: i18n.t("pi.tool.edit.label"),
 			description: baseEdit.description,
@@ -235,7 +244,7 @@ export function installLocalizedToolsOnce(pi: ExtensionAPI, i18n: I18nApi): void
 
 		// --- write ---
 		const baseWrite = createWriteTool(baseCwd);
-		pi.registerTool({
+		registerBuiltinTool("write", {
 			name: "write",
 			label: i18n.t("pi.tool.write.label"),
 			description: baseWrite.description,

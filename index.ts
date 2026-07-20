@@ -5,7 +5,13 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { detectLocaleFromEnv, loadI18nConfig, saveUserI18nConfig, type I18nConfig } from "./src/config";
+import {
+	detectLocaleFromEnv,
+	getDisabledBuiltinToolOverrides,
+	loadI18nConfig,
+	saveUserI18nConfig,
+	type I18nConfig,
+} from "./src/config";
 import { I18nRegistry } from "./src/registry";
 import type { BundleV1, I18nApi } from "./src/types";
 import { applyLocalizedFooter, applyLocalizedHeader, installLocalizedToolsOnce, notifyLanguageThinkStatus } from "./src/pi-ui";
@@ -143,9 +149,15 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 	// Header chrome is disabled by policy for this extension runtime.
 	const shouldApplyHeaderOnStartup = () => false;
 
-	// Install tool overrides once (behavior preserved, rendering localized)
-	// Must be registered before the first session_start fires.
-	installLocalizedToolsOnce(pi, i18n as unknown as I18nApi);
+	// Install tool overrides once (behavior preserved, rendering localized).
+	// Extensions are loaded per cwd, so bootstrap config can reserve selected tool names
+	// for another extension before the first session_start fires.
+	const bootstrapConfig = loadI18nConfig(process.cwd()).config;
+	installLocalizedToolsOnce(
+		pi,
+		i18n as unknown as I18nApi,
+		getDisabledBuiltinToolOverrides(bootstrapConfig),
+	);
 
 	pi.on("session_start", async (_event, ctx) => {
 		applyLocaleForCwd(ctx.cwd, ctx.ui);

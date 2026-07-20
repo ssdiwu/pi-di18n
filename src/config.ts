@@ -2,9 +2,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { statePath } from "./state-paths.ts";
 
+export const BUILTIN_TOOL_OVERRIDE_NAMES = ["read", "bash", "edit", "write"] as const;
+export type BuiltinToolOverrideName = (typeof BUILTIN_TOOL_OVERRIDE_NAMES)[number];
+
 export type I18nConfig = {
 	locale?: string;
 	fallbackLocale?: string;
+	// Built-in tool renderers that pi-di18n must not override because another extension owns them.
+	disabledBuiltinToolOverrides?: BuiltinToolOverrideName[];
 	// If true, pi-di18n will never call ctx.ui.setHeader(...).
 	disableHeader?: boolean;
 	// If true, pi-di18n will not set header during session_start.
@@ -40,6 +45,12 @@ export function getUserConfigPath(): string {
 
 export function getProjectConfigPath(cwd: string): string {
 	return join(cwd, ".pi", "state", "pi-di18n", "config.json");
+}
+
+export function getDisabledBuiltinToolOverrides(config: I18nConfig): ReadonlySet<BuiltinToolOverrideName> {
+	const configured = Array.isArray(config.disabledBuiltinToolOverrides) ? config.disabledBuiltinToolOverrides : [];
+	const allowed = new Set<string>(BUILTIN_TOOL_OVERRIDE_NAMES);
+	return new Set(configured.filter((name): name is BuiltinToolOverrideName => allowed.has(name)));
 }
 
 export function loadI18nConfig(cwd: string): { source: "project" | "user" | "none"; config: I18nConfig } {
