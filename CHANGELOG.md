@@ -4,6 +4,8 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.1.9 - 2026-07-20
+
 ### Added
 - Added `disabledBuiltinToolOverrides` so another extension can own selected `read`, `bash`, `edit`, or `write` tool names without disabling the rest of pi-di18n.
 
