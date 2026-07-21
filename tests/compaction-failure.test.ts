@@ -8,11 +8,12 @@ const completeMock = vi.hoisted(() => vi.fn());
 const getModelMock = vi.hoisted(() => vi.fn());
 const getEnvApiKeyMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@earendil-works/pi-ai", () => ({
+vi.mock("@earendil-works/pi-ai/compat", () => ({
 	complete: completeMock,
 	getModel: getModelMock,
 	getEnvApiKey: getEnvApiKeyMock,
 }));
+
 
 import {
 	classifyCompactionError,

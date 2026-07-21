@@ -63,7 +63,7 @@
     "slash.new.description": "Start a new session",
     "slash.compact.description": "Manually compact the session context",
     "slash.resume.description": "Resume a different session",
-    "slash.reload.description": "Reload keybindings, extensions, skills, prompts, and themes",
+    "slash.reload.description": "Reload keybindings, extensions, skills, prompts, themes, and context files",
     "slash.quit.description": "Quit pi",
 
     "ui.key.model": "model",
@@ -91,9 +91,10 @@
     "slash.new.description": "Start a new session",
     "slash.compact.description": "Manually compact the session context",
     "slash.resume.description": "Resume a different session",
-    "slash.reload.description": "Reload keybindings, extensions, skills, prompts, and themes",
+    "slash.reload.description": "Reload keybindings, extensions, skills, prompts, themes, and context files",
     "slash.quit.description": "Quit pi",
     "slash.lang.description": "Switch UI language (LTR)",
+    "slash.llama.description": "Manage llama.cpp router models",
 
     "tool.common.running": "Running…",
     "tool.common.done": "Done",
@@ -157,7 +158,8 @@
     "pi.slash.new.description": "Start a new session",
     "pi.slash.compact.description": "Manually compact the session context",
     "pi.slash.resume.description": "Resume a different session",
-    "pi.slash.reload.description": "Reload keybindings, extensions, skills, prompts, and themes",
-    "pi.slash.quit.description": "Quit pi"
+    "pi.slash.reload.description": "Reload keybindings, extensions, skills, prompts, themes, and context files",
+    "pi.slash.quit.description": "Quit pi",
+    "pi.slash.llama.description": "Manage llama.cpp router models"
   }
 }

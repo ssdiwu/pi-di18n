@@ -2,9 +2,17 @@
 
 All notable changes to `pi-di18n` are documented here.
 
-## Unreleased
+## 0.2.0 - 2026-07-21
 
-## 0.1.9 - 2026-07-20
+### Added
+- Localized the Pi 0.81 built-in `/llama` extension command description (`pi.slash.llama.description`, `slash.llama.description`) and the `/llama` custom model-management UI rendered through `showExtensionCustom`.
+- Localized the Pi 0.80.8+ `/model` background catalog-refresh status messages (`Refreshing model catalogs…`, `Model catalogs refreshed.`, refresh timeout/failure notices) while preserving dynamic provider ids and catalog counts. Patched `ModelSelectorComponent.updateList` so dynamically-added refresh-status Text nodes are re-localized on every render.
+- Added `slash.llama.description` legacy-format key so `I18nRegistry.t("pi.slash.llama.description")` resolves correctly, and preserved the autocomplete source tag (`[t]`/`[u]`) when translating extension command descriptions.
+
+### Changed
+- Synced the `/reload` slash description baseline to Pi 0.81 (`Reload keybindings, extensions, skills, prompts, themes, and context files`) across `en`, `zh-CN`, and `zh-TW`.
+- Patched `InteractiveMode.showExtensionCustom` so custom extension UI components (e.g. `/llama`) get their rendered lines localized line-by-line; render failures stay fail-soft and never reject the host's custom-UI Promise.
+- Upgraded the development baseline to `@earendil-works/pi-coding-agent` 0.81.0 and migrated compaction imports to `@earendil-works/pi-ai/compat`.
 
 ### Added
 - Added `disabledBuiltinToolOverrides` so another extension can own selected `read`, `bash`, `edit`, or `write` tool names without disabling the rest of pi-di18n.

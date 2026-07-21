@@ -63,7 +63,7 @@
     "slash.new.description": "开始新会话",
     "slash.compact.description": "手动压缩会话上下文",
     "slash.resume.description": "恢复另一个会话",
-    "slash.reload.description": "重新加载键位、扩展、技能、提示与主题",
+    "slash.reload.description": "重新加载键位、扩展、技能、提示词、主题和上下文文件",
     "slash.quit.description": "退出 pi",
 
     "ui.key.model": "模型",
@@ -73,6 +73,7 @@
     "ui.key.expand": "展开",
 
     "slash.lang.description": "切换界面语言（仅支持 LTR）",
+    "slash.llama.description": "管理 llama.cpp 路由模型",
 
     "tool.common.running": "执行中…",
     "tool.common.done": "完成",
@@ -136,7 +137,8 @@
     "pi.slash.new.description": "开始新会话",
     "pi.slash.compact.description": "手动压缩会话上下文",
     "pi.slash.resume.description": "恢复另一个会话",
-    "pi.slash.reload.description": "重新加载键位、扩展、技能、提示与主题",
-    "pi.slash.quit.description": "退出 pi"
+    "pi.slash.reload.description": "重新加载键位、扩展、技能、提示词、主题和上下文文件",
+    "pi.slash.quit.description": "退出 pi",
+    "pi.slash.llama.description": "管理 llama.cpp 路由模型"
   }
 }

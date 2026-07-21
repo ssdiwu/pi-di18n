@@ -17,7 +17,7 @@
 ## Features
 
 - **Full TUI localization** — keeps `core-hacks` to runtime-patch pi internal render paths, covering UI labels, selectors, status messages, and built-in slash-command descriptions.
-- **Slash-command description fix** — ships `pi.slash.<name>.description` bundle keys for all pi 0.79 built-in slash commands, including `zh-CN`.
+- **Slash-command description fix** — ships `pi.slash.<name>.description` bundle keys for all pi 0.81 built-in slash commands (including the built-in `/llama` extension command), with `zh-CN` and `zh-TW` translations.
 - **Session selector translation** — covers visible `session-selector` strings such as `Resume Session`, `Threaded`, `Recent`, `Fuzzy`, and delete prompts.
 - **Non-invasive status bar** — does not replace pi's native footer/status bar, so model, cwd, token, git, and worktree information remain visible.
 - **Runtime UI description localization** — asynchronously localizes extension, prompt-template, and skill command descriptions for autocomplete UI, then caches them locally without blocking rendering.
@@ -171,7 +171,7 @@ See [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%
 
 ## Compatibility
 
-The baseline target is `@earendil-works/pi-coding-agent` 0.79.x.
+The baseline target is `@earendil-works/pi-coding-agent` 0.81.x.
 
 pi currently has no native full TUI i18n API. TUI localization therefore depends on best-effort `core-hacks` that patch pi internal render paths. After every pi upgrade, run:
 

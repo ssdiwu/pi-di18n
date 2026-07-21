@@ -1026,6 +1026,10 @@ export function translateUiLineForTest(i18n: I18nApi, line: string): string {
 	return tSelector(i18n, tCore(i18n, input));
 }
 
+export function tSlashDescForTest(i18n: I18nApi, item: any): string | undefined {
+	return tSlashDesc(i18n, item);
+}
+
 function stripAnsiForMatch(input: string): string {
 	return String(input ?? "")
 		.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, "")
@@ -1153,6 +1157,15 @@ function postprocessZhCnUiLine(line: string): string {
 	s = s.replace(/(\d[\d,]*)\s+calls,\s*(\d[\d,]*)\s+results/g, "$1 次调用，$2 个结果");
 	s = s.replace(/(\d[\d,]*)\s+written to cache/g, "$1 已写入缓存");
 	s = s.replace(/(\d[\d,]*)\s+tokens,\s*(\d+)\s+miss(?:es)?/g, "$1 令牌，$2 次未命中");
+
+	// Pi 0.80.8+ /model background catalog-refresh status (model-selector.js).
+	// Template lines keep the dynamic provider id / catalog count intact.
+	s = s.replaceAll("Refreshing model catalogs…", "正在刷新模型目录…");
+	s = s.replaceAll("Model catalogs refreshed.", "模型目录已刷新。");
+	s = s.replaceAll("Model refresh timed out; showing cached models.", "模型刷新超时；显示缓存的模型。");
+	s = s.replace(/Could not refresh ([^;]+?); showing cached models\./g, (_m, what) => `无法刷新 ${what}；显示缓存的模型。`);
+	// "N model catalogs" appears inside the dynamic refresh-failure capture; localize the unit.
+	s = s.replace(/(\d+)\s+model catalogs/g, "$1 个模型目录");
 
 	s = s.replace(/导出会话失败：\s+/g, "导出会话失败：");
 	s = s.replaceAll("Scope: ", "范围：");
@@ -1487,7 +1500,11 @@ function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 		const key = `pi.slash.${name}.description`;
 		const translated = i18n.t(key);
 		if (translated !== key) {
-			return translated;
+			// Preserve the autocomplete source tag (e.g. "[t]", "[u]") that
+			// InteractiveMode.prefixAutocompleteDescription prepends; the bundle
+			// value is the bare localized description without the tag.
+			const tag = desc.match(/^\[[a-z:./-]+\]\s*/i)?.[0] ?? "";
+			return tag ? `${tag}${translated}` : translated;
 		}
 	}
 
@@ -1640,7 +1657,25 @@ function patchModelSelector(selector: any): void {
 	try {
 		const api = getCurrentI18n();
 		if (!api) return;
+		// Pi 0.80.8+ /model dynamically adds refresh-status Text nodes in
+		// updateList() after background refreshModels() completes. Re-localize
+		// the list container on every update so "Model catalogs refreshed."
+		// and failure notices follow the active locale.
+		if (selector?.constructor?.prototype?.updateList) {
+			patchOnce(selector.constructor.prototype, "model_selector_update_list", () => {
+				const orig = selector.constructor.prototype.updateList;
+				selector.constructor.prototype.updateList = function patchedUpdateList() {
+					const out = orig.call(this);
+					const curApi = getCurrentI18n();
+					if (curApi) localizeTextTree(this.listContainer, curApi);
+					return out;
+				};
+			});
+		}
 		localizeTextTree(selector, api);
+		// Re-run the now-patched updateList once so the initial refresh-status
+		// Text node (already rendered before patch) follows the locale too.
+		try { selector.updateList?.(); } catch { /* ignore */ }
 	} catch {
 		// ignore
 	}
@@ -1740,6 +1775,47 @@ function patchRenderableComponent(component: any): void {
 			return lines.map((l: any) => (typeof l === "string" ? tUiLine(api, l) : l));
 		};
 	});
+}
+
+// Localize a custom UI component (e.g. /llama LlamaView) returned by an
+// extension's showExtensionCustom factory. Patches the instance's render so
+// each rendered line passes through tUiLine; render failures degrade to the
+// original lines and never reject the host's custom-UI Promise.
+function patchCustomComponentRender(component: any, api: I18nApi): void {
+	if (!component) return;
+	const ctorName = component?.constructor?.name;
+	// Never localize transcript/message payload components, same guard as
+	// patchRenderableComponent — custom UIs should not rewrite message text.
+	if (ctorName && NEVER_LOCALIZE_TEXT_TREE_COMPONENTS.has(ctorName)) return;
+	const renderFn = component.render;
+	if (typeof renderFn !== "function") return;
+	if ((renderFn as any).__pi_i18n_custom_render__) return;
+	const patched = function patchedCustomRender(this: any, width: number) {
+		let lines: any;
+		try {
+			lines = renderFn.call(this, width);
+		} catch (e) {
+			probeHook("interactive.showExtensionCustom", "unsafe", String(e));
+			throw e; // surface to host render loop; localization never swallows render errors silently
+		}
+		const cur = getCurrentI18n() ?? api;
+		if (!cur || !Array.isArray(lines)) return lines;
+		try {
+			return lines.map((l: any) => (typeof l === "string" ? tUiLine(cur, l) : l));
+		} catch (e) {
+			probeHook("interactive.showExtensionCustom", "unsafe", String(e));
+			return lines;
+		}
+	};
+	(patched as any).__pi_i18n_custom_render__ = true;
+	(patched as any).__pi_i18n_original__ = renderFn;
+	component.render = patched;
+	// Localize any already-attached Text children (titles, hints).
+	try {
+		localizeTextTree(component, api);
+	} catch {
+		// ignore
+	}
 }
 
 export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; reason?: string }> {
@@ -1954,6 +2030,28 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 					if (!api) return orig.call(this, title, placeholder, opts);
 					return orig.call(this, tUiLine(api, title), tUiLine(api, placeholder), opts);
 				},
+			);
+			// Pi 0.81 /llama and other extension custom UIs render through
+			// showExtensionCustom. Wrap the factory so the returned component's
+			// render() output is localized line-by-line, and a render throw
+			// degrades to the original lines instead of rejecting the Promise
+			// or killing the custom UI loop.
+			patchMethod(InteractiveMode.prototype, "showExtensionCustom", (orig) =>
+				function patchedShowExtensionCustom(this: any, factory: any, options: any) {
+					const api = getCurrentI18n();
+					if (!api) return orig.call(this, factory, options);
+					const wrappedFactory = (...args: any[]) => {
+						const component = factory(...args);
+						try {
+							patchCustomComponentRender(component, api);
+						} catch {
+							// ignore: best-effort localization
+						}
+						return component;
+					};
+					return orig.call(this, wrappedFactory, options);
+				},
+				"interactive.showExtensionCustom",
 			);
 			patchMethod(InteractiveMode.prototype, "handleEvent", (orig) =>
 				function patchedHandleEvent(this: any, event: any) {
@@ -2179,6 +2277,7 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 			restore(InteractiveMode.prototype, "showExtensionSelector");
 			restore(InteractiveMode.prototype, "showExtensionConfirm");
 			restore(InteractiveMode.prototype, "showExtensionInput");
+			restore(InteractiveMode.prototype, "showExtensionCustom");
 			restore(InteractiveMode.prototype, "handleEvent");
 			restore(InteractiveMode.prototype, "showSelector");
 		} else {

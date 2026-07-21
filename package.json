@@ -1,6 +1,6 @@
 {
   "name": "pi-di18n",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "pi-di18n: full TUI i18n for pi (continues pi-i18n) plus summary localization (integrates pi-compaction-i18n)",
   "type": "module",
   "license": "MIT",
@@ -57,9 +57,9 @@
     "@earendil-works/pi-tui": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "^0.79.10",
-    "@earendil-works/pi-coding-agent": "^0.79.10",
-    "@earendil-works/pi-tui": "^0.79.10",
+    "@earendil-works/pi-ai": "^0.81.0",
+    "@earendil-works/pi-coding-agent": "^0.81.0",
+    "@earendil-works/pi-tui": "^0.81.0",
     "vitest": "^4.1.0"
   }
 }

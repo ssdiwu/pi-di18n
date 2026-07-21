@@ -4,7 +4,7 @@ vi.hoisted(() => {
 	process.env.PI_DI18N_STATE_DIR = "/dev/null";
 });
 
-import { fauxAssistantMessage, registerFauxProvider } from "@earendil-works/pi-ai";
+import { fauxAssistantMessage, registerFauxProvider } from "@earendil-works/pi-ai/compat";
 import { summarizeForCompaction } from "../src/compaction/summarize.ts";
 
 function makeEvent(reason: "manual" | "threshold") {

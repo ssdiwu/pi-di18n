@@ -4,7 +4,7 @@
 // 并入 pi-di18n 后，locale 由 index.ts 通过 i18n.getLocale() 传入，与 TUI 的
 // /lang 语言选择共享同一个真相源。本模块只保留 model override 的独立 config。
 
-import { complete, getEnvApiKey, getModel } from "@earendil-works/pi-ai";
+import { complete, getEnvApiKey, getModel } from "@earendil-works/pi-ai/compat";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
 import { languageInstructionForLocale } from "./locale.ts";
 import { buildCompactionPrompt, buildTreeSummaryPrompt } from "./templates.ts";
