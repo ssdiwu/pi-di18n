@@ -4,6 +4,8 @@ All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
 
+## 0.2.1 - 2026-07-30
+
 ### Added
 - Localized Pi 0.83 tool-output expansion status notices (`Tool output: expanded` and `Tool output: collapsed`) across maintained TUI locales.
 
