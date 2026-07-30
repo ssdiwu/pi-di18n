@@ -142,6 +142,8 @@
     "Cycle models": "Cambiar de modelo",
     "Open model selector": "Abrir selector de modelo",
     "Toggle tool output expansion": "Alternar expansión de salida de herramientas",
+    "Tool output: expanded": "Salida de herramienta: expandida",
+    "Tool output: collapsed": "Salida de herramienta: contraída",
     "Toggle thinking block visibility": "Alternar visibilidad de bloques de razonamiento",
     "Edit message in external editor": "Editar mensaje en editor externo",
     "Queue follow-up message": "Poner mensaje de seguimiento en cola",

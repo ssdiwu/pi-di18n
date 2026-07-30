@@ -142,6 +142,8 @@
     "Cycle models": "모델 순환",
     "Open model selector": "모델 선택기 열기",
     "Toggle tool output expansion": "도구 출력 확장 토글",
+    "Tool output: expanded": "도구 출력: 펼침",
+    "Tool output: collapsed": "도구 출력: 접힘",
     "Toggle thinking block visibility": "사고 블록 표시 토글",
     "Edit message in external editor": "외부 편집기로 메시지 편집",
     "Queue follow-up message": "후속 메시지 큐에 추가",

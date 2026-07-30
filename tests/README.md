@@ -18,6 +18,7 @@
 | [cache-miss-notice.test.ts](./cache-miss-notice.test.ts) | 动态 cache miss notice 的分支解析、locale 模板和运行时数值保留。 |
 | [cache-miss-notice-patch.test.ts](./cache-miss-notice-patch.test.ts) | `addCacheMissNotice` core patch：聊天区本地化与 TUI 异常 fail-soft。 |
 | [model-i18n.test.ts](./model-i18n.test.ts) | Pi 0.81 `/model` 后台目录刷新状态文案的 zh-CN 本地化，保留动态 provider/计数值。 |
+| [tool-output-status-i18n.test.ts](./tool-output-status-i18n.test.ts) | Pi 0.83 工具输出展开/折叠状态提示在全部维护语言包及 zh-TW legacy 路径中的本地化。 |
 | [llama-custom-ui.test.ts](./llama-custom-ui.test.ts) | Pi 0.81 `/llama` `showExtensionCustom` 自定义组件 render 本地化与 render 异常 fail-soft 降级。 |
 
 运行：

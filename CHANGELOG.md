@@ -2,6 +2,14 @@
 
 All notable changes to `pi-di18n` are documented here.
 
+## Unreleased
+
+### Added
+- Localized Pi 0.83 tool-output expansion status notices (`Tool output: expanded` and `Tool output: collapsed`) across maintained TUI locales.
+
+### Changed
+- Upgraded the development compatibility baseline to `@earendil-works/pi-coding-agent` 0.83.x.
+
 ## 0.2.0 - 2026-07-21
 
 ### Added

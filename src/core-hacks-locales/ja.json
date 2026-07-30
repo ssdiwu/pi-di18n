@@ -142,6 +142,8 @@
     "Cycle models": "モデルを切り替え",
     "Open model selector": "モデル選択を開く",
     "Toggle tool output expansion": "ツール出力の展開を切り替え",
+    "Tool output: expanded": "ツール出力：展開",
+    "Tool output: collapsed": "ツール出力：折りたたみ",
     "Toggle thinking block visibility": "思考ブロック表示を切り替え",
     "Edit message in external editor": "外部エディタでメッセージを編集",
     "Queue follow-up message": "フォローアップメッセージをキュー",

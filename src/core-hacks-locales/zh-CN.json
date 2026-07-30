@@ -205,6 +205,8 @@
     "Cycle models": "循环切换模型",
     "Open model selector": "打开模型选择器",
     "Toggle tool output expansion": "切换工具输出展开",
+    "Tool output: expanded": "工具输出：已展开",
+    "Tool output: collapsed": "工具输出：已折叠",
     "Toggle thinking block visibility": "切换思考块可见性",
     "Edit message in external editor": "在外部编辑器编辑消息",
     "Queue follow-up message": "将跟进消息加入队列",
