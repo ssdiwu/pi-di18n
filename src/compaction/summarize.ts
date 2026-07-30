@@ -4,6 +4,7 @@
 // 并入 pi-di18n 后，locale 由 index.ts 通过 i18n.getLocale() 传入，与 TUI 的
 // /lang 语言选择共享同一个真相源。本模块只保留 model override 的独立 config。
 
+import { retryAssistantCall, uuidv7, type RetryPolicy, type Usage } from "@earendil-works/pi-ai";
 import { complete, getEnvApiKey, getModel } from "@earendil-works/pi-ai/compat";
 import { convertToLlm, serializeConversation } from "@earendil-works/pi-coding-agent";
 import { languageInstructionForLocale } from "./locale.ts";
@@ -96,21 +97,29 @@ export function serializeSessionEntries(entries: any[]): string {
  *   2. 直接读 auth.json —— 绕过扩展上下文潜在问题
  *   3. 环境变量 —— 最后兜底
  */
-async function resolveModelAuth(
-	ctx: any,
-	model: any,
-): Promise<{ apiKey: string | undefined; headers: Record<string, string> | undefined }> {
-	// 策略 1：会话 modelRegistry
+type ResolvedModelAuth = {
+	resolved: boolean;
+	apiKey?: string;
+	headers?: Record<string, string>;
+	env?: Record<string, string>;
+};
+
+async function resolveModelAuth(ctx: any, model: any): Promise<ResolvedModelAuth> {
+	// Pi 0.82+ providers may authenticate entirely through headers or provider-scoped env.
 	try {
 		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
-		if (auth?.ok && auth?.apiKey) {
-			return { apiKey: auth.apiKey, headers: auth.headers };
+		if (auth?.ok) {
+			return {
+				resolved: true,
+				apiKey: auth.apiKey,
+				headers: auth.headers,
+				env: auth.env,
+			};
 		}
 	} catch {
-		// 策略 1 失败，继续兜底
+		// Continue with compatibility fallbacks for older Pi runtimes.
 	}
 
-	// 策略 2：直接读 auth.json
 	try {
 		const authPath = join(homedir(), ".pi", "agent", "auth.json");
 		if (existsSync(authPath)) {
@@ -118,24 +127,21 @@ async function resolveModelAuth(
 			const authData = JSON.parse(raw);
 			const cred = authData[model.provider];
 			if (cred?.type === "api_key" && cred?.key) {
-				return { apiKey: cred.key, headers: undefined };
+				return { resolved: true, apiKey: cred.key };
 			}
 		}
 	} catch {
-		// 策略 2 失败，继续兜底
+		// Continue with the legacy environment fallback.
 	}
 
-	// 策略 3：环境变量
 	try {
 		const envKey = getEnvApiKey(model.provider);
-		if (envKey) {
-			return { apiKey: envKey, headers: undefined };
-		}
+		if (envKey) return { resolved: true, apiKey: envKey };
 	} catch {
-		// 策略 3 也失败
+		// No compatible authentication source was found.
 	}
 
-	return { apiKey: undefined, headers: undefined };
+	return { resolved: false };
 }
 
 export type CompactionFailureKind =
@@ -153,7 +159,7 @@ export type CompactionModelInfo = {
 };
 
 type SummaryResult =
-	| { ok: true; text: string; model: CompactionModelInfo }
+	| { ok: true; text: string; model: CompactionModelInfo; usage?: Usage }
 	| { ok: false; kind: CompactionFailureKind; model: CompactionModelInfo; message: string };
 
 export function compactionModelInfo(model: any): CompactionModelInfo {
@@ -249,6 +255,29 @@ function unavailableResult(model: CompactionModelInfo, message: string): Extract
 	return { ok: false, kind: "model_unavailable", model, message };
 }
 
+const SUMMARY_RETRY_POLICY: RetryPolicy = {
+	enabled: true,
+	maxRetries: 3,
+	baseDelayMs: 2000,
+};
+
+function completeSummaryAttempt(model: any, prompt: string, requestOptions: any) {
+	return complete(
+		model,
+		{
+			systemPrompt: DEFAULT_SYSTEM_PROMPT,
+			messages: [
+				{
+					role: "user",
+					content: [{ type: "text", text: prompt }],
+					timestamp: Date.now(),
+				},
+			],
+		},
+		requestOptions,
+	);
+}
+
 async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promise<SummaryResult> {
 	const resolution = resolveCompactionModel(ctx.model, compactionConfig.model);
 	if (!resolution.model) {
@@ -259,37 +288,35 @@ async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promi
 
 	const model = resolution.model;
 	const info = resolution.info;
-	try {
-		const { apiKey, headers } = await resolveModelAuth(ctx, model);
-		if (!apiKey) {
-			const result: Extract<SummaryResult, { ok: false }> = {
-				ok: false,
-				kind: "auth",
-				model: info,
-				message: `No API key for provider ${info.provider}`,
-			};
-			notifyFailure(ctx, result);
-			return result;
-		}
+	const auth = await resolveModelAuth(ctx, model);
+	if (!auth.resolved) {
+		const result: Extract<SummaryResult, { ok: false }> = {
+			ok: false,
+			kind: "auth",
+			model: info,
+			message: `No authentication available for provider ${info.provider}`,
+		};
+		notifyFailure(ctx, result);
+		return result;
+	}
 
-		const response = await complete(
-			model,
-			{
-				systemPrompt: DEFAULT_SYSTEM_PROMPT,
-				messages: [
-					{
-						role: "user",
-						content: [{ type: "text", text: prompt }],
-						timestamp: Date.now(),
-					},
-				],
-			},
-			{
-				apiKey,
-				headers,
-				signal,
-				maxTokens: Math.min(8192, model.maxTokens > 0 ? model.maxTokens : 8192),
-			},
+	// Match Pi 0.82's standalone-summary semantics: retries reuse one fresh
+	// routing id, while separate summary operations never share cache/routing state.
+	const requestOptions = {
+		apiKey: auth.apiKey,
+		headers: auth.headers,
+		env: auth.env,
+		signal,
+		maxTokens: Math.min(8192, model.maxTokens > 0 ? model.maxTokens : 8192),
+		cacheRetention: "none" as const,
+		sessionId: uuidv7(),
+	};
+
+	try {
+		const response = await retryAssistantCall(
+			() => completeSummaryAttempt(model, prompt, requestOptions),
+			SUMMARY_RETRY_POLICY,
+			signal,
 		);
 
 		if (response.stopReason === "error" || response.stopReason === "aborted") {
@@ -321,7 +348,7 @@ async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promi
 			notifyFailure(ctx, result);
 			return result;
 		}
-		return { ok: true, text, model: info };
+		return { ok: true, text, model: info, usage: response.usage };
 	} catch (error) {
 		const result: Extract<SummaryResult, { ok: false }> = {
 			ok: false,
@@ -502,6 +529,7 @@ export async function summarizeForCompaction(event: any, ctx: any, locale: strin
 			summary: result.text,
 			firstKeptEntryId: guard.firstKeptEntryId || event.preparation.firstKeptEntryId,
 			tokensBefore: event.preparation.tokensBefore,
+			usage: result.usage,
 			details,
 		},
 	};
@@ -525,6 +553,7 @@ export async function summarizeForTree(event: any, ctx: any, locale: string | un
 	return {
 		summary: {
 			summary: result.text,
+			usage: result.usage,
 			details: {
 				locale,
 				languageInstruction,

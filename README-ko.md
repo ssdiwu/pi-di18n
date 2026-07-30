@@ -114,15 +114,15 @@ npm pack --dry-run
 현재 검증 기준:
 
 ```text
-Test Files  17 passed (17)
-Tests       88 passed (88)
+Test Files  25 passed (25)
+Tests       109 passed (109)
 ```
 
-자세한 검증 기록은 [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md)를 참고하세요.
+자세한 검증 기록은 [`doc/40-版本实施方案/verification-2026-07-30.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-07-30.md)를 참고하세요.
 
 ## Compatibility
 
-기준 버전은 `@earendil-works/pi-coding-agent` 0.79.x입니다. pi에는 아직 native full TUI i18n API가 없으므로 TUI localization은 best-effort `core-hacks`에 의존합니다. pi를 업그레이드한 뒤에는 `/lang debug`, `/lang probe`, `npm test`, `npm pack --dry-run`을 실행하세요.
+기준 버전은 `@earendil-works/pi-coding-agent` 0.83.x입니다. pi에는 아직 native full TUI i18n API가 없으므로 TUI localization은 best-effort `core-hacks`에 의존합니다. pi를 업그레이드한 뒤에는 `/lang debug`, `/lang probe`, `npm test`, `npm pack --dry-run`을 실행하세요.
 
 ## License
 

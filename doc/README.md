@@ -30,6 +30,7 @@
 | [pi-0.79-slash-i18n.md](./10-架构与运行/pi-0.79-slash-i18n.md) | pi 0.79 slash 命令本地化的问题、修复与实现 |
 | [pi-0.80-session-i18n.md](./10-架构与运行/pi-0.80-session-i18n.md) | Pi 0.80 `/session` 新增统计字段的本地化兼容 |
 | [pi-0.81-llama-model-i18n.md](./10-架构与运行/pi-0.81-llama-model-i18n.md) | Pi 0.81 `/llama` 模型管理 UI 与 `/model` 刷新状态的本地化 |
+| [pi-0.82-0.83-summary-login-i18n.md](./10-架构与运行/pi-0.82-0.83-summary-login-i18n.md) | Pi 0.82–0.83 摘要请求语义、provider 登录 UI 与 scoped-model 本地化兼容 |
 | [pi-0.83-tool-output-status-i18n.md](./10-架构与运行/pi-0.83-tool-output-status-i18n.md) | Pi 0.83 工具输出展开/折叠状态提示的本地化兼容 |
 | [core-hacks-ui-boundary.md](./10-架构与运行/core-hacks-ui-boundary.md) | core-hacks 的 TUI fail-soft 边界、风险路径与测试要求 |
 | [决策档案/](./决策档案/) | 架构决策记录（索引见 `决策档案/README.md`） |
@@ -46,6 +47,7 @@
 |------|------|
 | [verification-2026-06-17.md](./40-版本实施方案/verification-2026-06-17.md) | 2026-06-17 自动测试、npm dry-run、真实 TUI 验证记录 |
 | [verification-2026-06-19.md](./40-版本实施方案/verification-2026-06-19.md) | 2026-06-19 `zh-CN` TUI 漏翻修复验证（selector、resume、import/export 错误提示） |
+| [verification-2026-07-30.md](./40-版本实施方案/verification-2026-07-30.md) | 2026-07-30 Pi 0.83 摘要、鉴权、登录 UI 与 think baseline 升级适配验证 |
 
 ## 文档类型约定
 

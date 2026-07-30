@@ -31,7 +31,7 @@ function makeI18n(locale: string): I18nApi {
 
 // 构造 pi 自带 read 工具的 provider payload（英文 description，与 baseline 源一致）
 const READ_DESCRIPTION =
-	"Read the contents of a file. Supports text files and images (jpg, png, gif, webp). Images are sent as attachments. For text files, output is truncated to 2000 lines or 50KB (whichever is hit first). Use offset/limit for large files. When you need the full file, continue with offset until complete.";
+	"Read the contents of a file. Supports text files and images (jpg, png, gif, webp, bmp). Images are sent as attachments. For text files, output is truncated to 2000 lines or 50KB (whichever is hit first). Use offset/limit for large files. When you need the full file, continue with offset until complete.";
 const PATH_DESCRIPTION = "Path to the file to read (relative or absolute)";
 const OFFSET_DESCRIPTION = "Line number to start reading from (1-indexed)";
 

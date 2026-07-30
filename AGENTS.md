@@ -8,7 +8,7 @@
 
 ## 关键约束
 
-- 目标 pi 版本基线：`@earendil-works/pi-coding-agent` 0.81.x。
+- 目标 pi 版本基线：`@earendil-works/pi-coding-agent` 0.83.x。
 - 依赖 scope 使用 `@earendil-works/*`，不要新增 `@mariozechner/*` 依赖。
 - `pi-i18n/requestApi` 与 `pi-core/i18n/requestApi` 是兼容事件名，保留不改。
 - `locale` 真相源由 `/lang` 和 `I18nRegistry` 管理；compaction 模块从 `i18n.getLocale()` 接收 locale，不再独立检测环境变量。

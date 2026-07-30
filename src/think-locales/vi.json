@@ -2,7 +2,7 @@
   "version": 1,
   "locale": "vi",
   "tool": {
-    "read": "Đọc nội dung tệp. Hỗ trợ tệp văn bản và hình ảnh (jpg, png, gif, webp). Hình ảnh được gửi dưới dạng tệp đính kèm. Với tệp văn bản, đầu ra bị cắt ngắn thành 2000 dòng hoặc 50KB (điều nào đến trước). Với tệp lớn, hãy dùng offset/limit. Khi cần toàn bộ tệp, hãy tiếp tục đọc với offset cho đến khi hoàn tất.",
+    "read": "Đọc nội dung tệp. Hỗ trợ tệp văn bản và hình ảnh (jpg, png, gif, webp, bmp). Hình ảnh được gửi dưới dạng tệp đính kèm. Với tệp văn bản, đầu ra bị cắt ngắn thành 2000 dòng hoặc 50KB (điều nào đến trước). Với tệp lớn, hãy dùng offset/limit. Khi cần toàn bộ tệp, hãy tiếp tục đọc với offset cho đến khi hoàn tất.",
     "bash": "Thực thi lệnh bash trong thư mục làm việc hiện tại. Trả về stdout và stderr. Đầu ra bị cắt ngắn thành 2000 dòng cuối hoặc 50KB (điều nào đến trước). Nếu bị cắt ngắn, toàn bộ đầu ra được lưu vào tệp tạm. Có thể cung cấp timeout tính bằng giây.",
     "edit": "Chỉnh sửa một tệp bằng thay thế văn bản chính xác. Mỗi edits[].oldText phải khớp một vùng duy nhất, không chồng lấn trong tệp gốc. Nếu hai thay đổi ảnh hưởng cùng một khối hoặc các dòng lân cận, hãy gộp thành một edit thay vì phát hành các edit chồng lấn. Không bao gồm các vùng lớn không thay đổi chỉ để nối các thay đổi xa nhau.",
     "write": "Ghi nội dung vào tệp. Tạo tệp nếu chưa tồn tại, ghi đè nếu đã tồn tại. Tự động tạo thư mục cha.",

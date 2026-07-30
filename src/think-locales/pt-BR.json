@@ -2,7 +2,7 @@
   "version": 1,
   "locale": "pt-BR",
   "tool": {
-    "read": "Lê o conteúdo de um arquivo. Suporta arquivos de texto e imagens (jpg, png, gif, webp). Imagens são enviadas como anexos. Para arquivos de texto, a saída é truncada para 2000 linhas ou 50 KB (o que ocorrer primeiro). Use offset/limit para arquivos grandes. Quando precisar do arquivo completo, continue lendo com offset até terminar.",
+    "read": "Lê o conteúdo de um arquivo. Suporta arquivos de texto e imagens (jpg, png, gif, webp, bmp). Imagens são enviadas como anexos. Para arquivos de texto, a saída é truncada para 2000 linhas ou 50 KB (o que ocorrer primeiro). Use offset/limit para arquivos grandes. Quando precisar do arquivo completo, continue lendo com offset até terminar.",
     "bash": "Executa um comando bash no diretório de trabalho atual. Retorna stdout e stderr. A saída é truncada para as últimas 2000 linhas ou 50 KB (o que ocorrer primeiro). Se truncada, a saída completa é salva em um arquivo temporário. Opcionalmente, forneça timeout em segundos.",
     "edit": "Edita um único arquivo usando substituição exata de texto. Cada edits[].oldText deve corresponder a uma região única e não sobreposta do arquivo original. Se duas alterações afetarem o mesmo bloco ou linhas próximas, combine-as em um único edit em vez de emitir edits sobrepostos. Não inclua grandes regiões inalteradas apenas para conectar alterações distantes.",
     "write": "Escreve conteúdo em um arquivo. Cria o arquivo se não existir, sobrescreve se existir. Cria automaticamente os diretórios pai.",

@@ -7,6 +7,11 @@ All notable changes to `pi-di18n` are documented here.
 ### Added
 - Localized Pi 0.83 tool-output expansion status notices (`Tool output: expanded` and `Tool output: collapsed`) across maintained TUI locales.
 
+### Fixed
+- Restored Pi 0.81–0.82 summary semantics in localized `/compact` and `/tree` flows: header-only/provider-env authentication, usage accounting, bounded transient retries, and isolated no-cache routing session IDs.
+- Localized Pi 0.82/0.83 unavailable scoped-model rows and OpenRouter/Kimi login prompts, with fail-soft login-dialog rendering.
+- Refreshed the prefilled `read` tool-description baseline for Pi's `bmp` image support.
+
 ### Changed
 - Upgraded the development compatibility baseline to `@earendil-works/pi-coding-agent` 0.83.x.
 

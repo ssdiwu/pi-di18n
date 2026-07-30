@@ -2,7 +2,7 @@
   "version": 1,
   "locale": "id",
   "tool": {
-    "read": "Membaca isi file. Mendukung file teks dan gambar (jpg, png, gif, webp). Gambar dikirim sebagai lampiran. Untuk file teks, output dipotong menjadi 2000 baris atau 50 KB (mana yang lebih dulu tercapai). Gunakan offset/limit untuk file besar. Saat membutuhkan seluruh file, lanjutkan membaca dengan offset hingga selesai.",
+    "read": "Membaca isi file. Mendukung file teks dan gambar (jpg, png, gif, webp, bmp). Gambar dikirim sebagai lampiran. Untuk file teks, output dipotong menjadi 2000 baris atau 50 KB (mana yang lebih dulu tercapai). Gunakan offset/limit untuk file besar. Saat membutuhkan seluruh file, lanjutkan membaca dengan offset hingga selesai.",
     "bash": "Menjalankan perintah bash di direktori kerja saat ini. Mengembalikan stdout dan stderr. Output dipotong menjadi 2000 baris terakhir atau 50 KB (mana yang lebih dulu tercapai). Jika dipotong, seluruh output disimpan ke file sementara. Secara opsional dapat menyediakan timeout dalam detik.",
     "edit": "Mengedit satu file menggunakan penggantian teks yang persis. Setiap edits[].oldText harus cocok dengan region unik dan tidak tumpang tindih dari file asli. Jika dua perubahan memengaruhi blok yang sama atau baris berdekatan, gabungkan menjadi satu edit alih-alih mengeluarkan edit yang tumpang tindih. Jangan menyertakan region besar yang tidak berubah hanya untuk menghubungkan perubahan yang berjauhan.",
     "write": "Menulis konten ke file. Membuat file jika tidak ada, menimpa jika sudah ada. Membuat direktori induk secara otomatis.",

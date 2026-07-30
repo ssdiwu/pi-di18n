@@ -22,7 +22,7 @@ pi-compaction-i18n 原本独立读环境变量 / 独立 config 决定 locale。�
 
 摘要用的 LLM 模型默认跟随当前会话；可在 `~/.pi/agent/state/pi-di18n/compaction.json` 配置 `model`（`provider/modelId`）覆盖。
 
-总结请求失败时，扩展会记录实际 `provider/model` 并将错误分类为模型不可用、认证失败、usage/quota、限流、网络、取消或未知；随后返回 `{ cancel: true }`，阻止 pi core 使用当前会话模型重复请求。成功摘要的 `details` 也包含实际 `provider` 和 `model`。
+摘要鉴权优先使用 Pi 的会话级 resolver，兼容 API key、仅请求头鉴权和 provider-scoped env。成功结果会回传 provider usage，纳入 footer 与 `/session` 统计；每次摘要使用独立 routing session 并禁用不可复用的 prompt-cache 写入。瞬态 provider / transport 错误复用 Pi 公开的 `retryAssistantCall` 做有界指数退避，确定性模型、认证和额度错误不重试。最终失败仍返回 `{ cancel: true }`，阻止 pi core 再用当前会话模型发起第二套摘要请求。成功摘要的 `details` 保留实际 `provider` 和 `model`。
 
 ## 富媒体保留边界
 

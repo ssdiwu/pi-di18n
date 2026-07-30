@@ -114,15 +114,15 @@ npm pack --dry-run
 現在の検証基準:
 
 ```text
-Test Files  17 passed (17)
-Tests       88 passed (88)
+Test Files  25 passed (25)
+Tests       109 passed (109)
 ```
 
-詳細は [`doc/40-版本实施方案/verification-2026-06-17.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-06-17.md) を参照してください。
+詳細は [`doc/40-版本实施方案/verification-2026-07-30.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-07-30.md) を参照してください。
 
 ## Compatibility
 
-対象 baseline は `@earendil-works/pi-coding-agent` 0.79.x です。pi にはまだ native full TUI i18n API がないため、TUI localization は best-effort の `core-hacks` に依存します。pi をアップグレードしたら `/lang debug`、`/lang probe`、`npm test`、`npm pack --dry-run` を実行してください。
+対象 baseline は `@earendil-works/pi-coding-agent` 0.83.x です。pi にはまだ native full TUI i18n API がないため、TUI localization は best-effort の `core-hacks` に依存します。pi をアップグレードしたら `/lang debug`、`/lang probe`、`npm test`、`npm pack --dry-run` を実行してください。
 
 ## License
 

@@ -319,6 +319,14 @@ const CORE_FULL_SCAN_ANCHORS: string[] = [
 	"Toggle tool output",
 	"Tool output: expanded",
 	"Tool output: collapsed",
+	"Model unavailable",
+	"[unavailable]",
+	"No models match pattern ",
+	"Select authentication method for ",
+	"Sign in with OpenRouter",
+	"Sign in with Kimi Code",
+	"Sign in with an API key",
+	"Complete sign-in in your browser, or paste the authorization code / redirect URL here:",
 	"Toggle thinking blocks",
 	"Toggle named session filter",
 	"Open external editor",
@@ -368,7 +376,7 @@ const CORE_FULL_SCAN_ANCHORS: string[] = [
 	"Line number to start reading from (1-indexed)",
 	"Maximum number of lines to read",
 	":${startLine}${endLine ? ",
-	"Read the contents of a file. Supports text files and images (jpg, png, gif, webp). Images are sent as attachments. For text files, output is truncated to ${DEFAULT_MAX_LINES} lines or ${DEFAULT_MAX_BYTES / 1024}KB (whichever is hit first). Use offset/limit for large files. When you need the full file, continue with offset until complete.",
+	"Read the contents of a file. Supports text files and images (jpg, png, gif, webp, bmp). Images are sent as attachments. For text files, output is truncated to ${DEFAULT_MAX_LINES} lines or ${DEFAULT_MAX_BYTES / 1024}KB (whichever is hit first). Use offset/limit for large files. When you need the full file, continue with offset until complete.",
 	"[invalid arg]",
 	"Path to the file to write (relative or absolute)",
 	"Content to write to the file",
@@ -421,6 +429,11 @@ const ZH_TW_PARITY_SAMPLES: string[] = [
 	"No queued messages to restore",
 	"Current model does not support thinking",
 	"No models available",
+	"Model unavailable",
+	"Sign in with OpenRouter",
+	"Sign in with Kimi Code",
+	"Sign in with an API key",
+	"Complete sign-in in your browser, or paste the authorization code / redirect URL here:",
 	"Queued message for after compaction",
 	"Reloaded keybindings, extensions, skills, prompts, themes",
 	"Wait for the current response to finish before reloading.",
@@ -532,6 +545,19 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		"No queued messages to restore": "沒有可恢復的佇列訊息",
 		"Current model does not support thinking": "目前模型不支援思考模式",
 		"No models available": "沒有可用的模型",
+		"Model unavailable": "模型不可用",
+		"[unavailable]": "[不可用]",
+		" unavailable": " 不可用",
+		" enabled": " 已啟用",
+		"ctrl+s save": "ctrl+s 儲存",
+		"No models match pattern ": "沒有模型符合模式 ",
+		"Select authentication method for ": "選擇認證方式：",
+		"Sign in with an account": "使用帳戶登入",
+		"Sign in with an API key": "使用 API 金鑰登入",
+		"Sign in with OpenRouter": "使用 OpenRouter 登入",
+		"Sign in with Kimi Code": "使用 Kimi Code 登入",
+		"Complete sign-in in your browser. If the browser is on another machine, paste the final redirect URL here.": "請在瀏覽器中完成登入。如果瀏覽器位於另一台裝置，請在此貼上最終重新導向 URL。",
+		"Complete sign-in in your browser, or paste the authorization code / redirect URL here:": "請在瀏覽器中完成登入，或在此貼上授權碼 / 重新導向 URL：",
 		"Tool output: expanded": "工具輸出：已展開",
 		"Tool output: collapsed": "工具輸出：已摺疊",
 		"Queued message for after compaction": "已將訊息加入佇列（壓縮後送出）",
@@ -1050,6 +1076,10 @@ function postprocessZhCnUiLine(line: string): string {
 	if (/^(?:Scope:|范围：)\s*all\s*\|\s*scoped$/i.test(plain)) return "范围：全部 | 已筛选";
 	if (/^tab\s+scope(?:\s*\((?:all\/scoped|all\/filtered)\)|（全部\/已筛.*）?)$/i.test(plain)) return "tab 范围（全/筛）";
 	{
+		const m = plainBody.match(/^选择认证方式：(.+):$/i);
+		if (m) return `${rowPrefix}选择 ${m[1]} 的认证方式：`;
+	}
+	{
 		const m = plainBody.match(/^Model\s+(?:Name|名称)[:：]\s*(.+)$/i);
 		if (m) return `${rowPrefix}模型：${m[1]}`;
 	}
@@ -1251,6 +1281,12 @@ function tSelectorLegacyZhTw(i18n: I18nApi, line: string): string {
 	s = s.replaceAll("Only showing models with configured API keys (see README for details)", "僅顯示已設定 API 金鑰的模型（詳見 README）");
 	s = s.replaceAll("Scope: ", "範圍：");
 	s = s.replaceAll(" (all/scoped)", "（全部/已篩選）");
+	s = s.replaceAll("[unavailable]", "[不可用]");
+	s = s.replaceAll("Model unavailable", "模型不可用");
+	s = s.replace(/(\d+\/\d+) enabled/g, "$1 已啟用");
+	s = s.replace(/(\d+) unavailable/g, "$1 不可用");
+	s = s.replaceAll("ctrl+s save", "ctrl+s 儲存");
+	s = s.replace(/^Select authentication method for (.+):$/i, (_m, provider) => `選擇 ${provider} 的認證方式：`);
 
 	// Settings/model menus (ANSI-safe substring replacements)
 	s = s.replaceAll("Resource Configuration", "資源設定");
@@ -1781,6 +1817,40 @@ function patchRenderableComponent(component: any): void {
 	});
 }
 
+function patchLoginDialogPrototype(proto: any): void {
+	patchMethod(
+		proto,
+		"render",
+		(orig) =>
+			function patchedLoginDialogRender(this: any, width: number) {
+				let lines: any;
+				try {
+					lines = orig.call(this, width);
+				} catch (error) {
+					// Login state and OAuth polling must survive an upstream TUI renderer failure.
+					probeHook("interactive.loginDialog.render", "unsafe", String(error));
+					return [];
+				}
+				const api = getCurrentI18n();
+				if (!api || !Array.isArray(lines)) return lines;
+				try {
+					const translated = lines.map((line: any) => (typeof line === "string" ? tUiLine(api, line) : line));
+					probeHit("interactive.loginDialog.render", translated.some((line: any, index: number) => line !== lines[index]));
+					return translated;
+				} catch (error) {
+					probeHook("interactive.loginDialog.render", "unsafe", String(error));
+					return lines;
+				}
+			},
+		"interactive.loginDialog.render",
+	);
+}
+
+export function patchLoginDialogRenderForTest(proto: any, i18n: I18nApi): void {
+	setCurrentI18n(i18n);
+	patchLoginDialogPrototype(proto);
+}
+
 // Localize a custom UI component (e.g. /llama LlamaView) returned by an
 // extension's showExtensionCustom factory. Patches the instance's render so
 // each rendered line passes through tUiLine; render failures degrade to the
@@ -2157,6 +2227,23 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 		reasons.push(`interactive-mode patch failed: ${String(e)}`);
 	}
 
+	// Login dialogs are attached directly to the editor container rather than
+	// flowing through showSelector, so patch their renderer independently.
+	try {
+		const loginMod: any = await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
+		const LoginDialogComponent = loginMod?.LoginDialogComponent;
+		if (LoginDialogComponent?.prototype?.render) {
+			patchedAny = true;
+			patchLoginDialogPrototype(LoginDialogComponent.prototype);
+		} else {
+			probeHook("interactive.loginDialog.render", "notFound", "login-dialog not available");
+			reasons.push("login-dialog not available");
+		}
+	} catch (error) {
+		probeHook("interactive.loginDialog.render", "unsafe", String(error));
+		reasons.push(`login-dialog patch failed: ${String(error)}`);
+	}
+
 	// -------------------------------------------------------------------------
 	// Patch Loader updates (covers compaction loader labels and similar runtime messages)
 	// -------------------------------------------------------------------------
@@ -2289,6 +2376,15 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 		}
 	} catch (e) {
 		reasons.push(`interactive-mode restore failed: ${String(e)}`);
+	}
+
+	// Login dialog patch
+	try {
+		const loginMod: any = await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
+		const LoginDialogComponent = loginMod?.LoginDialogComponent;
+		if (LoginDialogComponent?.prototype) restore(LoginDialogComponent.prototype, "render");
+	} catch (e) {
+		reasons.push(`login-dialog restore failed: ${String(e)}`);
 	}
 
 	// Loader patch

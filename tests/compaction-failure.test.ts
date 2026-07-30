@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.hoisted(() => {
 	process.env.PI_DI18N_STATE_DIR = "/dev/null";
@@ -62,6 +62,10 @@ describe("compaction failure strategy", () => {
 		});
 	});
 
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
 	it.each(["manual", "threshold"] as const)("cancels %s compaction after one failed summary request", async (reason) => {
 		completeMock.mockRejectedValueOnce(new Error("Model not found override-model"));
 		const ctx = makeContext();
@@ -73,17 +77,20 @@ describe("compaction failure strategy", () => {
 		expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("test-provider/session-model"), "warning");
 	});
 
-	it.each(["manual", "threshold"] as const)("cancels %s when complete resolves an error response", async (reason) => {
-		completeMock.mockResolvedValueOnce({
+	it.each(["manual", "threshold"] as const)("cancels %s after retryable error responses are exhausted", async (reason) => {
+		vi.useFakeTimers();
+		completeMock.mockResolvedValue({
 			stopReason: "error",
 			errorMessage: "rate limit exceeded",
 			content: [{ type: "text", text: "partial text must not become a summary" }],
 		});
 		const ctx = makeContext();
 
-		const result = await summarizeForCompaction(makeEvent(reason), ctx, "zh-CN");
+		const pending = summarizeForCompaction(makeEvent(reason), ctx, "zh-CN");
+		await vi.runAllTimersAsync();
+		const result = await pending;
 
-		expect(completeMock).toHaveBeenCalledTimes(1);
+		expect(completeMock).toHaveBeenCalledTimes(4);
 		expect(result).toEqual({ cancel: true });
 		expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("[rate_limit]"), "warning");
 	});
@@ -138,7 +145,7 @@ describe("compaction failure strategy", () => {
 	});
 
 	it("still returns cancel when the notification renderer throws", async () => {
-		completeMock.mockRejectedValueOnce(new Error("fetch failed"));
+		completeMock.mockRejectedValueOnce(new Error("Model not found"));
 		const ctx = makeContext();
 		ctx.ui.notify.mockImplementation(() => {
 			throw new Error("TUI render failed");

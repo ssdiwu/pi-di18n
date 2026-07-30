@@ -9,7 +9,7 @@
 //
 // 第一版用 JSON 文本输出 + 容错解析（失败回退英文）；未来可升级 tool calling。
 
-import { complete, getEnvApiKey } from "@earendil-works/pi-ai";
+import { complete, getEnvApiKey } from "@earendil-works/pi-ai/compat";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -36,36 +36,45 @@ function languageForLocale(locale: string): string {
 	return LOCALE_LANGUAGE[locale] ?? locale;
 }
 
-async function resolveModelAuth(
-	ctx: any,
-	model: any,
-): Promise<{ apiKey: string | undefined; headers: Record<string, string> | undefined }> {
-	// 策略 1：会话 modelRegistry
+type ResolvedModelAuth = {
+	resolved: boolean;
+	apiKey?: string;
+	headers?: Record<string, string>;
+	env?: Record<string, string>;
+};
+
+async function resolveModelAuth(ctx: any, model: any): Promise<ResolvedModelAuth> {
+	// Pi 0.82+ providers may resolve authentication entirely to headers/env.
 	try {
 		const auth = await ctx.modelRegistry?.getApiKeyAndHeaders(model);
-		if (auth?.ok && auth?.apiKey) return { apiKey: auth.apiKey, headers: auth.headers };
+		if (auth?.ok) {
+			return {
+				resolved: true,
+				apiKey: auth.apiKey,
+				headers: auth.headers,
+				env: auth.env,
+			};
+		}
 	} catch {
-		// 继续
+		// Continue with compatibility fallbacks.
 	}
-	// 策略 2：直接读 auth.json
 	try {
 		const authPath = join(homedir(), ".pi", "agent", "auth.json");
 		if (existsSync(authPath)) {
 			const authData = JSON.parse(readFileSync(authPath, "utf-8"));
 			const cred = authData[model.provider];
-			if (cred?.type === "api_key" && cred?.key) return { apiKey: cred.key, headers: undefined };
+			if (cred?.type === "api_key" && cred?.key) return { resolved: true, apiKey: cred.key };
 		}
 	} catch {
-		// 继续
+		// Continue with environment fallback.
 	}
-	// 策略 3：环境变量
 	try {
 		const envKey = getEnvApiKey(model.provider);
-		if (envKey) return { apiKey: envKey, headers: undefined };
+		if (envKey) return { resolved: true, apiKey: envKey };
 	} catch {
-		// 失败
+		// No compatible authentication source was found.
 	}
-	return { apiKey: undefined, headers: undefined };
+	return { resolved: false };
 }
 
 const SYSTEM_PROMPT =
@@ -119,8 +128,8 @@ async function translateChunk(
 	const model = ctx.model;
 	if (!model) return {};
 
-	const { apiKey, headers } = await resolveModelAuth(ctx, model);
-	if (!apiKey) return {};
+	const auth = await resolveModelAuth(ctx, model);
+	if (!auth.resolved) return {};
 
 	const input = chunk.map((it) => ({ key: it.key, en: it.en }));
 	const userPrompt = `Target language: ${targetLang}\n\nTranslate each of the following. Output a JSON object {key: translation}.\n\n${JSON.stringify(input, null, 2)}`;
@@ -133,8 +142,9 @@ async function translateChunk(
 				messages: [{ role: "user", content: [{ type: "text", text: userPrompt }], timestamp: Date.now() }],
 			},
 			{
-				apiKey,
-				headers,
+				apiKey: auth.apiKey,
+				headers: auth.headers,
+				env: auth.env,
 				signal,
 				maxTokens: Math.min(8192, model.maxTokens > 0 ? model.maxTokens : 8192),
 			},

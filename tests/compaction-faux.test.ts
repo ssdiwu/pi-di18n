@@ -26,23 +26,27 @@ describe("compaction faux provider error protocol", () => {
 	let unregister: (() => void) | undefined;
 
 	afterEach(() => {
+		vi.useRealTimers();
 		unregister?.();
 		unregister = undefined;
 	});
 
-	it.each(["manual", "threshold"] as const)("cancels %s for resolved stopReason=error", async (reason) => {
+	it.each(["manual", "threshold"] as const)("cancels %s after resolved retryable errors are exhausted", async (reason) => {
+		vi.useFakeTimers();
 		const provider = registerFauxProvider({
 			provider: `compaction-faux-${reason}`,
 			api: `compaction-faux-api-${reason}`,
 			models: [{ id: "failure-model" }],
 		});
 		unregister = provider.unregister;
-		provider.setResponses([
-			fauxAssistantMessage("partial text", {
-				stopReason: "error",
-				errorMessage: "rate limit exceeded",
-			}),
-		]);
+		provider.setResponses(
+			Array.from({ length: 4 }, () =>
+				fauxAssistantMessage("partial text", {
+					stopReason: "error",
+					errorMessage: "rate limit exceeded",
+				}),
+			),
+		);
 		const notifications: string[] = [];
 		const ctx = {
 			model: provider.getModel(),
@@ -52,9 +56,11 @@ describe("compaction faux provider error protocol", () => {
 			ui: { notify: (message: string) => notifications.push(message) },
 		};
 
-		const result = await summarizeForCompaction(makeEvent(reason), ctx, "zh-CN");
+		const pending = summarizeForCompaction(makeEvent(reason), ctx, "zh-CN");
+		await vi.runAllTimersAsync();
+		const result = await pending;
 
-		expect(provider.state.callCount).toBe(1);
+		expect(provider.state.callCount).toBe(4);
 		expect(result).toEqual({ cancel: true });
 		expect(notifications[0]).toContain("[rate_limit]");
 		expect(notifications[0]).toContain(`${ctx.model.provider}/${ctx.model.id}`);
