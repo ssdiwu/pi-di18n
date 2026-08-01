@@ -1550,8 +1550,15 @@ function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 
 	// Runtime cache for extension/prompt/skill command descriptions.
 	if (name) {
-		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, desc, getActiveUiCache());
-		if (runtime) return runtime;
+		// pi prefixes autocomplete descriptions with a source tag (e.g. "[u]", "[u:npm:pi-btw]")
+		// via InteractiveMode.prefixAutocompleteDescription. The cache stores the bare description,
+		// so strip the tag before the lookup and re-prefix it after a hit (same convention as the
+		// bundle-key path above). Without this the strict `entry.en === currentEn` comparison always
+		// misses and third-party command descriptions never get localized.
+		const tag = desc.match(/^\[[a-z:./-]+\]\s*/i)?.[0] ?? "";
+		const bare = tag ? desc.slice(tag.length) : desc;
+		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, bare, getActiveUiCache());
+		if (runtime) return tag ? `${tag}${runtime}` : runtime;
 	}
 
 	// Fallback: legacy string replacement (zh-TW only). Kept for older bundles.

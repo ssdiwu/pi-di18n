@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { I18nRegistry } from "../src/registry.ts";
-import { getSlashDescMode, installCoreHacks, translateUiLineForTest, uninstallCoreHacks } from "../src/core-hacks.ts";
+import { getSlashDescMode, installCoreHacks, tSlashDescForTest, translateUiLineForTest, uninstallCoreHacks } from "../src/core-hacks.ts";
+import { putCachedCommandDescription, setActiveUiCache, type UiCache } from "../src/ui-localize/cache.js";
 import { BUILTIN_SLASH_COMMANDS } from "../node_modules/@earendil-works/pi-coding-agent/dist/core/slash-commands.js";
 
 function loadBundle(locale: string) {
@@ -11,6 +12,54 @@ function loadBundle(locale: string) {
 }
 
 describe("core-hacks slash command patch", () => {
+	it("localizes tagged autocomplete descriptions via the runtime cache (regression: source-tag prefix)", () => {
+		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
+		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
+		expect(i18n.registerBundle(loadBundle("zh-CN")).ok).toBe(true);
+
+		// pi 0.83 prefixes autocomplete descriptions with a source tag (e.g. "[u:npm:pi-btw]"),
+		// while the runtime cache stores the bare description. The lookup must strip the tag
+		// before comparing and re-prefix it after a hit, or the strict `en === currentEn` check
+		// always misses and third-party command descriptions never get localized.
+		const cache: UiCache = { locales: {} };
+		putCachedCommandDescription(cache, "zh-CN", "command:btw", "Continue a side conversation in a focused BTW modal.", "在聚焦的 BTW 模态窗口中继续一段支线对话。");
+		putCachedCommandDescription(cache, "zh-CN", "command:skill:grilling", "Grill the user relentlessly about a plan.", "毫不留情地拷问用户的想法。");
+		setActiveUiCache(cache);
+
+		expect(
+			tSlashDescForTest(i18n as any, {
+				name: "btw",
+				description: "[u:npm:pi-btw] Continue a side conversation in a focused BTW modal.",
+			}),
+		).toBe("[u:npm:pi-btw] 在聚焦的 BTW 模态窗口中继续一段支线对话。");
+
+		// generic tag
+		expect(
+			tSlashDescForTest(i18n as any, {
+				name: "skill:grilling",
+				description: "[u] Grill the user relentlessly about a plan.",
+			}),
+		).toBe("[u] 毫不留情地拷问用户的想法。");
+
+		// untagged descriptions keep working (no regression)
+		expect(
+			tSlashDescForTest(i18n as any, {
+				name: "btw",
+				description: "Continue a side conversation in a focused BTW modal.",
+			}),
+		).toBe("在聚焦的 BTW 模态窗口中继续一段支线对话。");
+
+		// unknown command falls through untouched
+		expect(
+			tSlashDescForTest(i18n as any, {
+				name: "does-not-exist",
+				description: "[u] Some unknown command description",
+			}),
+		).toBe("[u] Some unknown command description");
+
+		setActiveUiCache({ locales: {} });
+	});
+
 	it("translates zh-CN model selector lines without leaving mixed English/Chinese fragments", () => {
 		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
 		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
