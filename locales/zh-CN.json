@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "zh-CN",
   "messages": {
+    "i18n.slash.fallback": "i18n：slash 命令描述通过补全回退路径本地化。",
     "app.name": "pi",
 
     "language.command.description": "切换界面语言（仅支持 LTR）",

@@ -7,6 +7,9 @@
 | [module-load.test.ts](./module-load.test.ts) | 当前 `@earendil-works` pi 包下，扩展入口可正常加载。 |
 | [extension-register.test.ts](./extension-register.test.ts) | 在隔离配置目录中执行 extension factory，确认 `/lang`、locale tool、默认工具覆盖和 compaction hooks 注册。 |
 | [tool-override-exclusions.test.ts](./tool-override-exclusions.test.ts) | 过滤非法工具名，并确认让出的内置工具名不会被 pi-di18n 注册。 |
+| [bash-settings.test.ts](./bash-settings.test.ts) | 隔离目录中真实执行自定义 shell 与命令前缀，核宿主有效配置接口、旧版已保存配置、工作目录、项目可信边界和后续配置刷新；Windows 执行保持未覆盖。 |
+| [tagged-command-description.test.ts](./tagged-command-description.test.ts) | 来源标签、scoped npm 与 git ref 的裸描述缓存命中、失效和原文保留。 |
+| [compaction-provider-payload.test.ts](./compaction-provider-payload.test.ts) | 真实 OpenAI Responses adapter 配合内存端点，复现不符的 explicit-cache metadata 导致 400，并核关闭 flag 后摘要通过。 |
 | [slash-i18n.test.ts](./slash-i18n.test.ts) | pi 0.81 全部内置 slash 命令（含 `/llama` 扩展命令）在 `en`/`zh-CN`/`zh-TW` bundle 有 key 且 en 基准同步上游，zh-CN/zh-TW 全部本地化。 |
 | [core-hacks-slash.test.ts](./core-hacks-slash.test.ts) | 真实调用 `installCoreHacks()` patch pi 0.81 的 `BUILTIN_SLASH_COMMANDS`，验证 `slashDescMode=primary`。 |
 | [compaction-locale.test.ts](./compaction-locale.test.ts) | 摘要本地化的 locale → 语言映射与语言指令。 |
@@ -30,3 +33,6 @@
 ```bash
 npm test
 ```
+
+- `settings-localization.test.ts` 同时保留 Pi 0.83 与新版本设置原文的翻译断言，不按当前语言豁免旧版覆盖。
+- `fallback-notice.test.ts` 在隔离状态下从实际 session_start 入口核对维护语言的回退通知，core patch 与预翻译边界替代，不访问用户状态或模型。

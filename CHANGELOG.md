@@ -3,6 +3,22 @@
 All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
+### Changed
+- Started the Pi 1.1.0 compatibility pass: refreshed zh-CN core-hack anchors for renamed settings descriptions, login selector copy, paste/edit keybinding descriptions, resource-config scope titles, and the dynamic branch-summary interrupt hint; added footer hint anchors for resource/config submenus.
+- Removed third-party extension string packs (chucknorris, igotchu/yo) from the zh-TW core-hack table and their dynamic regex translations.
+
+### Added
+- Retain both legacy (Pi ≤0.83) and 1.1.0 settings anchors in zh-CN, while other maintained packs keep their legacy anchors pending newer-copy backfill.
+- Calibrated zh-CN anchors against Pi 1.1.0 runtime behavior: confirmed dynamic keybinding hint lines (`↑/↓ move`, `ctrl+d delete`, `filters …`) still resolve to the zh-CN anchors, updated reworded or re-keyed copy (`option+←/→ branch`, `ctrl+x copy`, `Ctrl+S save`, `✓ New session started`, `Nothing to compact (session too small)`, ` ✓ configured` / ` • not configured` login-state rows), while preserving the legacy anchors needed by supported older hosts.
+
+### Fixed
+- Restored supported legacy zh-CN UI anchors alongside newer Pi wording, and reinstated old-settings regression checks instead of exempting zh-CN.
+- Routed the slash fallback notice through the active locale bundle rather than always showing Simplified Chinese.
+- Restored runtime autocomplete-description cache hits for third-party commands while retaining Pi source tags, including scoped npm packages and git refs.
+- Preserved effective `shellPath` and `shellCommandPrefix` settings when executing the localized bash override, using the host settings API when available and a saved-settings fallback on older Pi versions.
+- Fixed all interactive TUI localization silently no-oping on Pi 1.1.0: the running entry is the bundle (`dist/bundle/cli.js`), whose `InteractiveMode`/selector classes live in `dist/bundle/chunks/`, while `dist/modes/...` files are dead copies. Runtime-chunk resolution now patches the live classes (settings/model/session selectors, login dialog); slash descriptions fall back to the autocomplete-output path because the bundle keeps `BUILTIN_SLASH_COMMANDS` internal.
+- Added `scripts/tui-smoke.py` (pty-based real-TUI smoke test) as the TUI-layer regression gate; probe `matched` states alone are no longer treated as proof of localization.
+- Localized the Pi 1.1.0 settings additions (model default thinking level, TUI mode, fullscreen exit output / scrollbar / copy-on-select / wheel scrolling labels and descriptions) and translated the slash-fallback warning into Chinese.
 
 ## 0.2.1 - 2026-07-30
 

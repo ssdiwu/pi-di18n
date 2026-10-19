@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "ja",
   "messages": {
+    "i18n.slash.fallback": "i18n: スラッシュコマンドの説明は補完の代替経路で翻訳されます。",
     "app.name": "pi",
 
     "language.command.description": "UI 言語を切り替える（LTR のみ）",

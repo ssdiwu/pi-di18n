@@ -13,8 +13,8 @@ const UI_CASES = [
 	{ source: "Model unavailable", residual: /Model unavailable|unavailable/i },
 	{ source: "→ ghost/model [unavailable] ✗", residual: /unavailable/i },
 	{
-		source: "ctrl+s save · 0/0 enabled · 1 unavailable",
-		residual: /\bsave\b|\benabled\b|\bunavailable\b/i,
+		source: "Ctrl+S save",
+		residual: /\bsave\b/i,
 	},
 	{
 		source: "Select authentication method for OpenRouter:",

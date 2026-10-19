@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "ko",
   "messages": {
+    "i18n.slash.fallback": "i18n: 슬래시 명령 설명은 자동 완성 대체 경로로 번역됩니다.",
     "app.name": "pi",
 
     "language.command.description": "UI 언어 전환(LTR 전용)",

@@ -1,6 +1,6 @@
 import type { I18nApi } from "./types";
 import { CombinedAutocompleteProvider, Loader, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { getProbeSnapshot, probeHit, probeHook, resetProbe, setProbeEnabled } from "./probe";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -191,6 +191,65 @@ function findPiCodingAgentDistDir(): string | null {
 	return null;
 }
 
+
+/**
+ * Pi 1.1.0+ ships a bundled entry (`dist/bundle/cli.js`): the classes that
+ * interactive TUI patching needs live inside `dist/bundle/chunks/*.js`, and the
+ * loose files under `dist/modes/...` are dead copies that never run. Resolving
+ * modules through the old dist-relative paths therefore patches objects the
+ * running session never uses. This loader discovers the runtime chunk once and
+ * resolves named exports from it.
+ */
+const RUNTIME_CHUNK_MARKERS: Record<string, string> = {
+	"modes/interactive/interactive-mode.js": "InteractiveMode",
+	"modes/interactive/components/login-dialog.js": "LoginDialogComponent",
+	"modes/interactive/components/settings-selector.js": "SettingsSelectorComponent",
+};
+
+let runtimeChunkPromise: Promise<any | undefined> | undefined;
+
+function loadPiRuntimeChunk(distDir: string): Promise<any | undefined> {
+	if (!runtimeChunkPromise) {
+		runtimeChunkPromise = (async () => {
+			const chunksDir = join(distDir, "bundle", "chunks");
+			if (!existsSync(chunksDir)) return undefined;
+			// The bundle keeps class names (`InteractiveMode=class`), so the marker
+			// is stable even if the hashed chunk file name changes per release.
+			for (const file of readdirSync(chunksDir).sort()) {
+				if (!file.endsWith(".js")) continue;
+				const abs = join(chunksDir, file);
+				try {
+					if (!readFileSync(abs, "utf8").includes("InteractiveMode=class")) continue;
+					return await import(pathToFileURL(abs).href);
+				} catch {
+					// Try the next candidate chunk.
+				}
+			}
+			return undefined;
+		})().catch(() => undefined);
+	}
+	return runtimeChunkPromise;
+}
+
+/**
+ * Resolve a module from the *running* Pi build. Returns `{ runtime: true, mod }`
+ * with a wrapper module when the bundle chunk provides the named export, or
+ * `{ runtime: false }` when the target has no bundle export (callers decide
+ * whether the legacy dist path is meaningful or should degrade gracefully).
+ */
+async function importFromPiRuntime(relPathFromDist: string): Promise<{ runtime: boolean; mod: any } | undefined> {
+	const distDir = findPiCodingAgentDistDir();
+	if (!distDir) return undefined;
+	const chunksDir = join(distDir, "bundle", "chunks");
+	if (!existsSync(chunksDir)) return undefined; // pre-bundle Pi (≤0.85-ish): legacy path is live
+	const exportName = RUNTIME_CHUNK_MARKERS[relPathFromDist];
+	if (!exportName) return { runtime: true, mod: undefined }; // bundle layout but no named export (e.g. slash-commands)
+	const chunk = await loadPiRuntimeChunk(distDir);
+	const value = chunk?.[exportName];
+	if (!value) return { runtime: true, mod: undefined };
+	return { runtime: true, mod: { [exportName]: value } };
+}
+
 async function importFromPiCodingAgentDist(relPathFromDist: string): Promise<any> {
 	const distDir = findPiCodingAgentDistDir();
 	if (!distDir) throw new Error(getCoreDistDebug().reason ?? "pi-coding-agent dist dir not found");
@@ -198,7 +257,6 @@ async function importFromPiCodingAgentDist(relPathFromDist: string): Promise<any
 	if (!existsSync(abs)) throw new Error(`core file not found: ${abs}`);
 	return await import(pathToFileURL(abs).href);
 }
-
 function patchMethod(proto: any, name: string, make: (orig: any) => any, probeId?: string): void {
 	const cur = proto?.[name];
 	if (typeof cur !== "function") {
@@ -590,6 +648,7 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		"Model Configuration": "模型設定",
 		"Session-only. Ctrl+S to save to settings.": "僅限本次。Ctrl+S 儲存設定。",
 		"(unsaved)": "（未儲存）",
+		"Ctrl+S save": "Ctrl+S 儲存",
 		"re:<pattern> regex · \"phrase\" exact": "re:<pattern> 正規表示式 · \"phrase\" 精確比對",
 		"Rename Session": "重新命名工作階段",
 		"  Enter to select · Esc to go back": "  Enter 選取 · Esc 返回",
@@ -687,44 +746,6 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		"  No settings available": "  沒有可用設定",
 		"  No matching settings": "  找不到符合的設定",
 
-		// chucknorris extension strings
-		"Chuck rejected the state file. It apologized.": "Chuck 拒絕了狀態檔，還順便道歉。",
-		"Chuck can't find his joke file.": "Chuck 找不到他的笑話檔。",
-		"Chuck failed to load jokes file.": "Chuck 載入笑話檔失敗。",
-		"chuck-toast": "chuck-toast",
-		"Chuck: hush": "Chuck：安靜",
-		"Chuck: ": "Chuck：",
-		"ChuckASM isn't loaded yet. Try /reload.": "ChuckASM 尚未載入，請試試 /reload。",
-		"Happy path: /chuck quick | now | nap 4h | wake | status": "順手路徑：/chuck quick | now | nap 4h | wake | status",
-		"Alias: /chucknorris ...": "別名：/chucknorris ...",
-		"Quick preset applied: on + office + autotune.": "已套用快速預設：on + office + autotune。",
-		"Chuck ran out of jokes. Physics is safe… for now.": "Chuck 的笑話用完了。物理定律暫時安全。",
-		"Try: /chuck nap 4h  (or 30m, or rnd)": "試試：/chuck nap 4h（或 30m，或 rnd）",
-		"Chuck woke up. The internet got quieter.": "Chuck 醒了。網路突然安靜了點。",
-		"Chuck off. Silent and deadly.": "Chuck 已關閉。安靜又致命。",
-		"Chuck on. Reality updated its terms.": "Chuck 已開啟。現實條款已更新。",
-		"Chuck returned to factory settings. Factory got nervous.": "Chuck 已回復出廠設定。工廠開始緊張。",
-		"Office mode armed. Chuck will whisper.": "辦公模式啟用。Chuck 會輕聲細語。",
-		"Stealth mode engaged. Chuck left no logs.": "潛行模式啟動。Chuck 沒留下任何紀錄。",
-		"Unhinged mode engaged. Latency will be judged.": "失控模式啟動。延遲將被審判。",
-		"Try: /chuck mode office|stealth|unhinged|default": "試試：/chuck mode office|stealth|unhinged|default",
-		"Curfew: off": "宵禁：關",
-		"Curfew off. Chuck now works the night shift.": "宵禁已關。Chuck 現在值夜班。",
-		"Try: /chuck curfew 22-8  (or /chuck curfew off)": "試試：/chuck curfew 22-8（或 /chuck curfew off）",
-		"Curfew hours must be 0..23": "宵禁時段必須在 0..23",
-		"Chuck switched back to the default pack.": "Chuck 已切回預設包。",
-		"Chuck accepted your new joke pack. The universe sighed.": "Chuck 接受了你的新笑話包。宇宙嘆了一口氣。",
-		"Pack reloaded.": "笑話包已重新載入。",
-		"No latency samples yet. Ask something slow first.": "尚無延遲樣本。先問點會慢的問題吧。",
-		"Autotune on. Chuck now calibrates your patience.": "自動調校已開啟。Chuck 正在校準你的耐心。",
-		"Autotune off. Chuck will not adapt. Neither will you.": "自動調校已關閉。Chuck 不會適應，你也不會。",
-		"Chuck safe mode: on": "Chuck 安全模式：開",
-		"Chuck safe mode: off": "Chuck 安全模式：關",
-		"Contribute joke packs: one joke per line, optional [modern]/[classic] tags.": "投稿笑話包：每行一則笑話，可加 [modern]/[classic] 標籤。",
-		"If this made you smile, star the repo and share your best pack ✨": "如果你笑了，請幫 repo 點星，並分享你的最佳笑話包 ✨",
-		"Unknown Chuck move. Try: /chuck help": "未知的 Chuck 指令。請試試：/chuck help",
-		"chucknorris: fun latency-gated thinking toasts": "chucknorris：有趣的延遲門檻思考提示",
-		"Alias for /chucknorris": "/chucknorris 的別名",
 
 		// i18n extension strings
 		"Show i18n debug info (core-hacks + slash menu)": "顯示 i18n 偵錯資訊（core-hacks + slash 選單）",
@@ -776,64 +797,6 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		"Persist strict unknown classification now?": "現在持久化 strict unknown classification 嗎？",
 		"guided recovery complete": "引導式復原完成",
 
-		// igotchu strings
-		"igotchu: no available prediction model": "igotchu：沒有可用的預測模型",
-		"95+ cheap-model predictive prefill with one-key injected delete": "95+ 低成本模型預測預填，支援一鍵注入刪除",
-		"igotchu enabled": "igotchu 已啟用",
-		"igotchu disabled": "igotchu 已停用",
-		"Usage: /igotchu threshold <50-99>": "使用方式：/igotchu threshold <50-99>",
-		"Usage: /igotchu model pin <provider/model>": "使用方式：/igotchu model pin <provider/model>",
-		"Pinned model is not available/authenticated": "釘選模型不可用或未通過驗證",
-		"Usage: /igotchu model show|auto|pin <provider/model>": "使用方式：/igotchu model show|auto|pin <provider/model>",
-		"No active model selected for deep assist": "尚未選擇可用於深度輔助的模型",
-		"Type something first, then run /igotchu deep": "請先輸入一些內容，再執行 /igotchu deep",
-		"Deep assist returned no prediction": "深度輔助未回傳預測",
-		"Deep assist returned empty continuation": "深度輔助回傳了空續寫",
-		"Reset igotchu?": "要重設 igotchu 嗎？",
-		"Clear config + local state + rebuild defaults?": "清除設定與本地狀態，並重建預設值？",
-		"igotchu reset complete": "igotchu 重設完成",
-		"yo model: ${modelRef(selectedModel)} (${selectedModelReason})": "yo 模型：${modelRef(selectedModel)}（${selectedModelReason}）",
-		"yo: no available cheap model": "yo：沒有可用的低成本模型",
-		"yo synced (.igotchu.md) [${reason}]": "yo 已同步（.igotchu.md）[${reason}]",
-		"yo sync failed: ${lastError}": "yo 同步失敗：${lastError}",
-		"yo: drift high — ${suggestion}": "yo：漂移偏高 — ${suggestion}",
-		" yo ": " yo ",
-		"(Esc/Enter to close)": "（Esc/Enter 關閉）",
-		"Drift monitor (cheap-first). Nudges only at confidence>=95. Footer: <glyph> yo": "漂移監測（低成本優先）。僅在 confidence>=95 時提示。Footer：<glyph> yo",
-		"show current drift/conf/model": "顯示目前 drift/conf/model",
-		"open overlay report": "開啟覆蓋層報告",
-		"enable yo": "啟用 yo",
-		"disable yo": "停用 yo",
-		"write .igotchu.md now": "立即寫入 .igotchu.md",
-		"reset runtime state/cooldown": "重設執行期狀態/冷卻",
-		"threshold ": "threshold ",
-		"set confidence threshold (95-99)": "設定 confidence 閾值（95-99）",
-		"nudge ": "nudge ",
-		"set drift nudge threshold (0-100)": "設定 drift nudge 閾值（0-100）",
-		"model ": "model ",
-		"show/auto/pin": "show/auto/pin",
-		"manual deep analysis using current chat model": "使用目前聊天模型進行手動深度分析",
-		"model show": "model show",
-		"show cheap model selection": "顯示低成本模型選擇",
-		"model auto": "model auto",
-		"auto-select cheap model": "自動選擇低成本模型",
-		"model pin ": "model pin ",
-		"model pin": "model pin",
-		"pin a provider/model": "釘選 provider/model",
-		"ctx=${m.contextWindow} maxTok=${m.maxTokens}": "ctx=${m.contextWindow} maxTok=${m.maxTokens}",
-		"nudge ${v}": "nudge ${v}",
-		"yo enabled": "yo 已啟用",
-		"yo disabled": "yo 已停用",
-		"Usage: /yo threshold <95-99>": "使用方式：/yo threshold <95-99>",
-		"yo threshold set to ${config.threshold}": "yo 閾值已設為 ${config.threshold}",
-		"Usage: /yo nudge <0-100>": "使用方式：/yo nudge <0-100>",
-		"yo nudge drift threshold set to ${config.nudgeThreshold}": "yo nudge 漂移閾值已設為 ${config.nudgeThreshold}",
-		"Usage: /yo model pin <provider/model>": "使用方式：/yo model pin <provider/model>",
-		"Usage: /yo model show|auto|pin <provider/model>": "使用方式：/yo model show|auto|pin <provider/model>",
-		"No current chat model selected": "尚未選擇目前聊天模型",
-		"Reset yo?": "要重設 yo 嗎？",
-		"Clear runtime drift history + cooldown (keeps .igotchu.md)": "清除執行期漂移歷史與冷卻（保留 .igotchu.md）",
-		"yo reset complete": "yo 重設完成",
 
 		// oneliner
 		"oneliner: cycle footer preset (full/compact/ultra)": "oneliner：循環切換 footer 預設（full/compact/ultra）",
@@ -863,8 +826,6 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		").join(\"n\")}": ").join(\"n\")}",
 		" (${lines} lines)": "（${lines} 行）",
 		"lang:${locale}": "語言：${locale}",
-		"igotchu synced (.igotchu.md) [${reason}]": "igotchu 已同步（.igotchu.md）[${reason}]",
-		"igotchu deep prefill (${Math.round(pred.confidence)})": "igotchu 深度預填（${Math.round(pred.confidence)}）",
 
 		// dynamic template anchors (interactive-mode)
 		"  Model Name: ${selected.model.name}": "  模型名稱：${selected.model.name}",
@@ -968,31 +929,10 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 	out = out.replace(/Session name:\s*/gi, "工作階段名稱：");
 	out = out.replace(/Session name set:\s*/gi, "工作階段名稱已設定：");
 	out = out.replace(/^Bash command failed: (.+)$/i, (_m, e) => `Bash 命令失敗：${e}`);
-	out = out.replace(/^nap (\d+)m$/i, (_m, m) => `小睡 ${m} 分`);
-	out = out.replace(/^cool (\d+)m$/i, (_m, m) => `冷卻 ${m} 分`);
-	out = out.replace(/^ChuckASM failed to load: (.+)$/i, (_m, e) => `ChuckASM 載入失敗：${e}`);
-	out = out.replace(/^Chuck is napping for (\d+)m\.$/i, (_m, m) => `Chuck 正在小睡 ${m} 分鐘。`);
-	out = out.replace(/^Chuck mode: (.+)$/i, (_m, name) => `Chuck 模式：${name}`);
-	out = out.replace(/^Curfew: (\d+)-(\d+)$/i, (_m, s1, s2) => `宵禁：${s1}-${s2}`);
-	out = out.replace(/^Curfew set: (\d+)-(\d+)\. Chuck will keep it quiet then\.$/i, (_m, s1, s2) => `宵禁已設定：${s1}-${s2}。Chuck 屆時會保持安靜。`);
-	out = out.replace(/^Autotune: (on|off) \(use \/chuck tune on\|off\)$/i, (_m, state) => `自動調校：${state === "on" ? "開" : "關"}（使用 /chuck tune on|off）`);
-	out = out.replace(/^Chuck safe mode: (on|off) \(use \/chuck safe on\|off\)$/i, (_m, state) => `Chuck 安全模式：${state === "on" ? "開" : "關"}（使用 /chuck safe on|off）`);
-	out = out.replace(/^drift warning \(anti-drift contract\):\n(.+)$/i, (_m, body) => `漂移警告（反漂移契約）：\n${body}`);
 	out = out.replace(/^core hacks failed: (.+)$/i, (_m, r) => `core hacks 失敗：${r}`);
 	out = out.replace(/^core hacks disable failed: (.+)$/i, (_m, r) => `停用 core hacks 失敗：${r}`);
 	out = out.replace(/^ \((\d+) lines\)$/i, (_m, n) => `（${n} 行）`);
 	out = out.replace(/^lang:(.+)$/i, (_m, l) => `語言：${l}`);
-	out = out.replace(/^igotchu model: (.+) \((.+)\)$/i, (_m, model, why) => `igotchu 模型：${model}（${why}）`);
-	out = out.replace(/^igotchu synced \(\.igotchu\.md\) \[(.+)\]$/i, (_m, reason) => `igotchu 已同步（.igotchu.md）[${reason}]`);
-	out = out.replace(/^igotchu sync failed: (.+)$/i, (_m, e) => `igotchu 同步失敗：${e}`);
-	out = out.replace(/^igotchu on • threshold (\d+) • model (.+)$/i, (_m, th, model) => `igotchu 已啟用 • 閾值 ${th} • 模型 ${model}`);
-	out = out.replace(/^igotchu threshold set to (\d+)$/i, (_m, n) => `igotchu 閾值已設為 ${n}`);
-	out = out.replace(/^igotchu deep prefill \((\d+)\)$/i, (_m, c) => `igotchu 深度預填（${c}）`);
-	out = out.replace(/^yo model: (.+) \((.+)\)$/i, (_m, model, why) => `yo 模型：${model}（${why}）`);
-	out = out.replace(/^yo synced \(\.igotchu\.md\) \[(.+)\]$/i, (_m, reason) => `yo 已同步（.igotchu.md）[${reason}]`);
-	out = out.replace(/^yo sync failed: (.+)$/i, (_m, e) => `yo 同步失敗：${e}`);
-	out = out.replace(/^yo threshold set to (\d+)$/i, (_m, n) => `yo 閾值已設為 ${n}`);
-	out = out.replace(/^yo nudge drift threshold set to (\d+)$/i, (_m, n) => `yo nudge 漂移閾值已設為 ${n}`);
 	out = out.replace(/^rollback failed: unknown plan (.+)$/i, (_m, id) => `回滾失敗：未知方案 ${id}`);
 	out = out.replace(/^classify unknown \((.+)\) dry-run: (\d+) candidate\(s\)$/i, (_m, s1, n) => `classify unknown（${s1}）dry-run：${n} 個候選`);
 	out = out.replace(/^fix markdown plan (.+): (\d+) file\(s\) • MUST (\d+) -> (\d+)$/i, (_m, id, files, b, a) => `fix markdown 計畫 ${id}：${files} 個檔案 • MUST ${b} -> ${a}`);
@@ -1491,7 +1431,10 @@ function localizeBuiltinSlashDesc(i18n: I18nApi, name: string, currentDesc?: str
 
 async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<{ ok: boolean; reason?: string; changed?: number }> {
 	try {
-		const mod: any = await importFromPiCodingAgentDist("core/slash-commands.js");
+		const runtime = await importFromPiRuntime("core/slash-commands.js");
+		// Bundle layout keeps BUILTIN_SLASH_COMMANDS internal; the autocomplete-output
+		// fallback (setSlashDescMode("fallback")) covers slash descriptions instead.
+		const mod: any = runtime && runtime.runtime ? undefined : await importFromPiCodingAgentDist("core/slash-commands.js");
 		const list: any[] | undefined = mod?.BUILTIN_SLASH_COMMANDS;
 		if (!Array.isArray(list)) return { ok: false, reason: "BUILTIN_SLASH_COMMANDS not found" };
 
@@ -1531,6 +1474,9 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 	const desc = item?.description as string | undefined;
 	if (!desc) return desc;
+	// Pi source tags can contain scoped npm names, digits, and git refs.
+	// Match only source-tag forms, so semantic prefixes such as [warning] stay intact.
+	const tag = desc.match(/^\[(?:[upt]|[upt]:(?:npm|git):[^\]\r\n]+)\][ \t]*/)?.[0] ?? "";
 
 	// Prefer key-based translation by command name.
 	// Command names are stable identifiers; descriptions can change across versions.
@@ -1543,15 +1489,15 @@ function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 			// Preserve the autocomplete source tag (e.g. "[t]", "[u]") that
 			// InteractiveMode.prefixAutocompleteDescription prepends; the bundle
 			// value is the bare localized description without the tag.
-			const tag = desc.match(/^\[[a-z:./-]+\]\s*/i)?.[0] ?? "";
 			return tag ? `${tag}${translated}` : translated;
 		}
 	}
 
 	// Runtime cache for extension/prompt/skill command descriptions.
 	if (name) {
-		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, desc, getActiveUiCache());
-		if (runtime) return runtime;
+		const bare = tag ? desc.slice(tag.length) : desc;
+		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, bare, getActiveUiCache());
+		if (runtime) return `${tag}${runtime}`;
 	}
 
 	// Fallback: legacy string replacement (zh-TW only). Kept for older bundles.
@@ -1924,7 +1870,8 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 	// -------------------------------------------------------------------------
 	try {
 		// Interactive mode only. If module path changes, we fail closed.
-		const mod: any = await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js");
+		const runtime = await importFromPiRuntime("modes/interactive/interactive-mode.js");
+		const mod: any = runtime?.runtime ? runtime.mod : await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js");
 		const InteractiveMode = mod?.InteractiveMode;
 		if (InteractiveMode?.prototype) {
 			patchedAny = true;
@@ -2230,7 +2177,8 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 	// Login dialogs are attached directly to the editor container rather than
 	// flowing through showSelector, so patch their renderer independently.
 	try {
-		const loginMod: any = await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
+		const loginRuntime = await importFromPiRuntime("modes/interactive/components/login-dialog.js");
+		const loginMod: any = loginRuntime?.runtime ? loginRuntime.mod : await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
 		const LoginDialogComponent = loginMod?.LoginDialogComponent;
 		if (LoginDialogComponent?.prototype?.render) {
 			patchedAny = true;
@@ -2336,7 +2284,8 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 	try {
 		const originals = state.original?.slashDescs;
 		if (originals) {
-			const mod: any = await importFromPiCodingAgentDist("core/slash-commands.js");
+			const slashRuntime = await importFromPiRuntime("core/slash-commands.js");
+			const mod: any = slashRuntime && slashRuntime.runtime ? undefined : await importFromPiCodingAgentDist("core/slash-commands.js");
 			const list: any[] | undefined = mod?.BUILTIN_SLASH_COMMANDS;
 			if (Array.isArray(list)) {
 				for (const cmd of list) {
@@ -2356,7 +2305,8 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 
 	// InteractiveMode patches
 	try {
-		const mod: any = await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js");
+		const runtime = await importFromPiRuntime("modes/interactive/interactive-mode.js");
+		const mod: any = runtime?.runtime ? runtime.mod : await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js");
 		const InteractiveMode = mod?.InteractiveMode;
 		if (InteractiveMode?.prototype) {
 			restore(InteractiveMode.prototype, "showStatus");
@@ -2380,7 +2330,8 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 
 	// Login dialog patch
 	try {
-		const loginMod: any = await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
+		const loginRuntime = await importFromPiRuntime("modes/interactive/components/login-dialog.js");
+		const loginMod: any = loginRuntime?.runtime ? loginRuntime.mod : await importFromPiCodingAgentDist("modes/interactive/components/login-dialog.js");
 		const LoginDialogComponent = loginMod?.LoginDialogComponent;
 		if (LoginDialogComponent?.prototype) restore(LoginDialogComponent.prototype, "render");
 	} catch (e) {

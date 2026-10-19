@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "pt-BR",
   "messages": {
+    "i18n.slash.fallback": "i18n: as descrições dos comandos slash são traduzidas pela rota alternativa de preenchimento automático.",
     "app.name": "pi",
 
     "language.command.description": "Trocar o idioma da UI (somente LTR)",

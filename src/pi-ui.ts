@@ -1,5 +1,5 @@
 import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
-import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint } from "@earendil-works/pi-coding-agent";
+import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import type { BuiltinToolOverrideName } from "./config";
 import type { I18nApi } from "./types";
@@ -173,7 +173,18 @@ export function installLocalizedToolsOnce(
 			description: baseBash.description,
 			parameters: baseBash.parameters,
 			async execute(toolCallId, params, signal, onUpdate, ctx) {
-				const tool = createBashTool(ctx.cwd);
+				// Current Pi exposes merged settings including runtime overrides. Older
+				// hosts need the saved-settings fallback, with the same project trust.
+				const runtimePi = pi as ExtensionAPI & { getSettings?: () => Parameters<typeof SettingsManager.inMemory>[0] };
+				const settings = typeof runtimePi.getSettings === "function"
+					? SettingsManager.inMemory(runtimePi.getSettings())
+					: SettingsManager.create(ctx.cwd, undefined, {
+						projectTrusted: typeof ctx.isProjectTrusted === "function" && ctx.isProjectTrusted(),
+					});
+				const tool = createBashTool(ctx.cwd, {
+					shellPath: settings.getShellPath(),
+					commandPrefix: settings.getShellCommandPrefix(),
+				});
 				return tool.execute(toolCallId, params as any, signal, onUpdate);
 			},
 			renderCall(args: any, theme, _context) {

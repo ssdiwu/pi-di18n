@@ -1,14 +1,21 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.hoisted(() => { process.env.PI_DI18N_STATE_DIR = "/dev/null"; });
 import { translateUiLineForTest } from "../src/core-hacks.ts";
 
 const PACK_DIR = join(process.cwd(), "src/core-hacks-locales");
-const NEW_SETTINGS = [
-	"Cache miss notices",
+// Both legacy and current wording remain supported in maintained language packs.
+const LEGACY_SETTINGS = [
 	"Show transcript notices for significant prompt-cache misses",
-	"Output padding",
 	"Horizontal padding for user messages, assistant messages, and thinking",
+] as const;
+const SHARED_SETTINGS = ["Cache miss notices", "Output padding"] as const;
+// pi 1.1.0 wording: zh-CN first; other packs pending backfill.
+const SETTINGS_1_1 = [
+	"Show transcript notices for cache costs and provider recovery diagnostics",
+	"Horizontal padding for messages, tool output, and command output",
 ] as const;
 
 function api(locale: string) {
@@ -22,22 +29,30 @@ describe("pi 0.79 new settings localization", () => {
 
 		for (const file of files) {
 			const pack = JSON.parse(readFileSync(join(PACK_DIR, file), "utf8"));
-			for (const source of NEW_SETTINGS) {
+			const settings = file === "zh-CN.json" ? [...SHARED_SETTINGS, ...LEGACY_SETTINGS, ...SETTINGS_1_1] : [...SHARED_SETTINGS, ...LEGACY_SETTINGS];
+			for (const source of settings) {
 				expect(pack.exact[source], `${file}: ${source}`).toBeTypeOf("string");
 				expect(pack.exact[source], `${file}: ${source}`).not.toBe(source);
 			}
 		}
 	});
 
+	it.each([
+		["Show transcript notices for significant prompt-cache misses", "提示缓存明显未命中时显示记录提示"],
+		["Horizontal padding for user messages, assistant messages, and thinking", "用户消息、助手消息和思考内容的水平内距"],
+	])("keeps supported Pi 0.83 wording localized: %s", (source, translated) => {
+		expect(translateUiLineForTest(api("zh-CN"), source)).toBe(translated);
+	});
+
 	it("translates zh-CN setting descriptions and selected values", () => {
 		const zhCN = api("zh-CN");
 
-		expect(translateUiLineForTest(zhCN, "Show transcript notices for significant prompt-cache misses")).toBe(
-			"提示缓存明显未命中时显示记录提示",
-		);
-		expect(translateUiLineForTest(zhCN, "Horizontal padding for user messages, assistant messages, and thinking")).toBe(
-			"用户消息、助手消息和思考内容的水平内距",
-		);
+	expect(translateUiLineForTest(zhCN, "Show transcript notices for cache costs and provider recovery diagnostics")).toBe(
+		"显示缓存成本与提供商恢复诊断的记录提示",
+	);
+	expect(translateUiLineForTest(zhCN, "Horizontal padding for messages, tool output, and command output")).toBe(
+		"消息、工具输出和命令输出的水平内距",
+	);
 		expect(translateUiLineForTest(zhCN, "→ Cache miss notices false")).toBe("→ 缓存未命中提示 关");
 		expect(translateUiLineForTest(zhCN, "→ Cache miss notices true")).toBe("→ 缓存未命中提示 开");
 		expect(translateUiLineForTest(zhCN, "  Output padding 1")).toBe("  输出内距 1");

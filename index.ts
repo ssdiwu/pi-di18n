@@ -32,6 +32,8 @@ import { isEnabled as isThinkEnabled, loadCache as loadThinkCache } from "./src/
 import { loadUiCache, setActiveUiCache, getUiDebug } from "./src/ui-localize/cache";
 import { prefetchUiDescriptionsOnSessionStart } from "./src/ui-localize/localize";
 
+let fallbackNoticeShown = false;
+
 function loadBundle(baseDir: string, rel: string): BundleV1 {
 	const path = join(baseDir, rel);
 	const raw = readFileSync(path, "utf-8");
@@ -173,8 +175,11 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			await uninstallCoreHacks();
 		}
 		const warnCoreMismatch = shouldWarnCoreMisalignment(i18n as unknown as I18nApi);
-		if (warnCoreMismatch) {
-			ctx.ui?.notify?.("i18n: slash command localization is running in fallback mode (pi-core alignment needed)", "warning");
+		if (warnCoreMismatch && !fallbackNoticeShown) {
+			// Pi 1.1.0+ bundle keeps BUILTIN_SLASH_COMMANDS internal; the autocomplete-output
+			// fallback is the supported path there. Notify once per session, informational only.
+			fallbackNoticeShown = true;
+			ctx.ui?.notify?.(i18n.t("pi.i18n.slash.fallback"), "info");
 		}
 
 		// Apply chrome now

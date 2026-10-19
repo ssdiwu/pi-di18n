@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "de",
   "messages": {
+    "i18n.slash.fallback": "i18n: Slash-Befehlsbeschreibungen werden über die Autovervollständigung als Ausweichlösung übersetzt.",
     "app.name": "pi",
 
     "language.command.description": "UI-Sprache wechseln (nur LTR)",
