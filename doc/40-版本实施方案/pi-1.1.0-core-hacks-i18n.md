@@ -100,3 +100,9 @@ exact 表：300 → 288 条。npm test 109/109、npm pack --dry-run 通过。
 
 - `tests/settings-localization.test.ts`：legacy 组与其余 6 语言、1.1.0 组与 zh-CN 绑定；后续每批锚点更新需同步扩展该测试。
 - 审计脚本思路：全量 key 对照 dist 产物字符串（模板串分段验证），可按需重写为 `scripts/` 内常规工具。
+
+## 2026-10-19 维护复审修订
+
+上述记录保留 `acf9902` 的首次适配判断。本轮补审确认 README 与 lockfile 仍保留 Pi 0.83 支持，因此不能只按 1.1.0 是否还显示某段文字删除语言锚点。已恢复远端基线中被删的 32 个 zh-CN 旧 exact 键，并保留本次新措辞；旧版设置描述的回归不再对 zh-CN 豁免。`tests/settings-localization.test.ts` 同时验证旧版和新版设置原文。
+
+回退通知现改用既有 `I18nRegistry` 和维护语言包，不再把简体中文发送给所有语言。提示只说明命令描述走补全回退路径，不将该状态本身表述为“功能完整”。`tests/fallback-notice.test.ts` 从 `session_start` 入口核对维护语言中的实际通知；该测试隔离 patch 和预翻译边界，不访问个人状态或外部模型。

@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "en",
   "messages": {
+    "i18n.slash.fallback": "i18n: slash command descriptions use the autocomplete fallback.",
     "app.name": "pi",
 
     "language.command.description": "Switch UI language (LTR)",

@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "fr",
   "messages": {
+    "i18n.slash.fallback": "i18n : les descriptions des commandes slash sont traduites via la saisie semi-automatique de secours.",
     "app.name": "pi",
 
     "language.command.description": "Changer la langue de l’UI (LTR uniquement)",

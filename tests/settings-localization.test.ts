@@ -1,10 +1,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.hoisted(() => { process.env.PI_DI18N_STATE_DIR = "/dev/null"; });
 import { translateUiLineForTest } from "../src/core-hacks.ts";
 
 const PACK_DIR = join(process.cwd(), "src/core-hacks-locales");
-// pi ≤0.83 legacy anchors: still present in every pack except zh-CN (which moved to the 1.1.0 wording).
+// Both legacy and current wording remain supported in maintained language packs.
 const LEGACY_SETTINGS = [
 	"Show transcript notices for significant prompt-cache misses",
 	"Horizontal padding for user messages, assistant messages, and thinking",
@@ -27,12 +29,19 @@ describe("pi 0.79 new settings localization", () => {
 
 		for (const file of files) {
 			const pack = JSON.parse(readFileSync(join(PACK_DIR, file), "utf8"));
-			const settings = file === "zh-CN.json" ? [...SHARED_SETTINGS, ...SETTINGS_1_1] : [...SHARED_SETTINGS, ...LEGACY_SETTINGS];
+			const settings = file === "zh-CN.json" ? [...SHARED_SETTINGS, ...LEGACY_SETTINGS, ...SETTINGS_1_1] : [...SHARED_SETTINGS, ...LEGACY_SETTINGS];
 			for (const source of settings) {
 				expect(pack.exact[source], `${file}: ${source}`).toBeTypeOf("string");
 				expect(pack.exact[source], `${file}: ${source}`).not.toBe(source);
 			}
 		}
+	});
+
+	it.each([
+		["Show transcript notices for significant prompt-cache misses", "提示缓存明显未命中时显示记录提示"],
+		["Horizontal padding for user messages, assistant messages, and thinking", "用户消息、助手消息和思考内容的水平内距"],
+	])("keeps supported Pi 0.83 wording localized: %s", (source, translated) => {
+		expect(translateUiLineForTest(api("zh-CN"), source)).toBe(translated);
 	});
 
 	it("translates zh-CN setting descriptions and selected values", () => {

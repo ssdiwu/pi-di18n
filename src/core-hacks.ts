@@ -1474,6 +1474,9 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 	const desc = item?.description as string | undefined;
 	if (!desc) return desc;
+	// Pi source tags can contain scoped npm names, digits, and git refs.
+	// Match only source-tag forms, so semantic prefixes such as [warning] stay intact.
+	const tag = desc.match(/^\[(?:[upt]|[upt]:(?:npm|git):[^\]\r\n]+)\][ \t]*/)?.[0] ?? "";
 
 	// Prefer key-based translation by command name.
 	// Command names are stable identifiers; descriptions can change across versions.
@@ -1486,15 +1489,15 @@ function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 			// Preserve the autocomplete source tag (e.g. "[t]", "[u]") that
 			// InteractiveMode.prefixAutocompleteDescription prepends; the bundle
 			// value is the bare localized description without the tag.
-			const tag = desc.match(/^\[[a-z:./-]+\]\s*/i)?.[0] ?? "";
 			return tag ? `${tag}${translated}` : translated;
 		}
 	}
 
 	// Runtime cache for extension/prompt/skill command descriptions.
 	if (name) {
-		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, desc, getActiveUiCache());
-		if (runtime) return runtime;
+		const bare = tag ? desc.slice(tag.length) : desc;
+		const runtime = resolveRuntimeCommandDescription(i18n.getLocale(), name, bare, getActiveUiCache());
+		if (runtime) return `${tag}${runtime}`;
 	}
 
 	// Fallback: legacy string replacement (zh-TW only). Kept for older bundles.

@@ -4,6 +4,7 @@
   "namespace": "pi",
   "locale": "zh-TW",
   "messages": {
+    "i18n.slash.fallback": "i18n：slash 指令說明透過補全備援路徑在地化。",
     "app.name": "pi",
 
     "language.command.description": "切換介面語言（僅支援 LTR）",

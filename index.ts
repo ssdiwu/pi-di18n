@@ -179,7 +179,7 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			// Pi 1.1.0+ bundle keeps BUILTIN_SLASH_COMMANDS internal; the autocomplete-output
 			// fallback is the supported path there. Notify once per session, informational only.
 			fallbackNoticeShown = true;
-			ctx.ui?.notify?.("i18n：slash 命令描述本地化运行于回退模式（经补全输出层翻译，功能完整）", "info");
+			ctx.ui?.notify?.(i18n.t("pi.i18n.slash.fallback"), "info");
 		}
 
 		// Apply chrome now
