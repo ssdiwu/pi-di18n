@@ -20,6 +20,17 @@ vi.mock("@earendil-works/pi-coding-agent", () => ({
 	createEditTool: () => ({ description: "edit", parameters: {}, async execute() { return { content: [{ type: "text", text: "" }] }; } }),
 	createWriteTool: () => ({ description: "write", parameters: {}, async execute() { return { content: [{ type: "text", text: "" }] }; } }),
 	keyHint: (id: string) => id,
+	SettingsManager: {
+		// Mirror the real manager: an empty/blank path normalizes to undefined.
+		inMemory: (settings: { shellPath?: string; shellCommandPrefix?: string }) => ({
+			getShellPath: () => (settings.shellPath?.trim() ? settings.shellPath : undefined),
+			getShellCommandPrefix: () => settings.shellCommandPrefix,
+		}),
+		create: () => ({
+			getShellPath: () => undefined,
+			getShellCommandPrefix: () => undefined,
+		}),
+	},
 }));
 
 function makeI18n(): I18nApi {
@@ -66,16 +77,16 @@ beforeEach(() => {
 
 describe("bash tool override forwards settings.shellPath (issue #6)", () => {
 	it("passes shellPath from pi.getSettings() to createBashTool at execute time", async () => {
-		const { installLocalizedToolsOnce, resolveBashShellPath } = await loadPiUi();
+		const { installLocalizedToolsOnce, resolveBashToolOptions } = await loadPiUi();
 		const { pi, executeBash } = makePi(() => ({ shellPath: "/bin/bash" }));
 
 		installLocalizedToolsOnce(pi as any, makeI18n());
 		await executeBash("/tmp/workdir");
 
-		expect(resolveBashShellPath(pi as any)).toBe("/bin/bash");
+		expect(resolveBashToolOptions(pi as any, {}).shellPath).toBe("/bin/bash");
 		// call[0]: install-time metadata tool (cwd only); call[1]: execute-time rebuild.
 		expect(createBashToolCalls.length).toBe(2);
-		expect(createBashToolCalls[1]).toEqual({ cwd: "/tmp/workdir", options: { shellPath: "/bin/bash" } });
+		expect(createBashToolCalls[1]).toEqual({ cwd: "/tmp/workdir", options: { shellPath: "/bin/bash", commandPrefix: undefined } });
 	});
 
 	it("reads settings on every execute instead of caching the install-time snapshot", async () => {
@@ -86,15 +97,15 @@ describe("bash tool override forwards settings.shellPath (issue #6)", () => {
 		installLocalizedToolsOnce(pi as any, makeI18n());
 
 		await executeBash();
-		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: "/bin/bash" });
+		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: "/bin/bash", commandPrefix: undefined });
 
 		settings = { shellPath: "/opt/homebrew/bin/bash" };
 		await executeBash();
-		expect(createBashToolCalls[2]?.options).toEqual({ shellPath: "/opt/homebrew/bin/bash" });
+		expect(createBashToolCalls[2]?.options).toEqual({ shellPath: "/opt/homebrew/bin/bash", commandPrefix: undefined });
 
 		settings = undefined;
 		await executeBash();
-		expect(createBashToolCalls[3]?.options).toEqual({ shellPath: undefined });
+		expect(createBashToolCalls[3]?.options).toEqual({ shellPath: undefined, commandPrefix: undefined });
 	});
 
 	it("falls back to default shell when shellPath is missing or blank", async () => {
@@ -104,25 +115,28 @@ describe("bash tool override forwards settings.shellPath (issue #6)", () => {
 		installLocalizedToolsOnce(pi as any, makeI18n());
 		await executeBash();
 
-		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: undefined });
+		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: undefined, commandPrefix: undefined });
 	});
 
 	it("keeps default shell when the pi runtime has no settings API or it throws", async () => {
-		const { resolveBashShellPath } = await loadPiUi();
+		const { resolveBashToolOptions } = await loadPiUi();
 
-		expect(resolveBashShellPath({} as any)).toBeUndefined();
+		expect(resolveBashToolOptions({} as any, {}).shellPath).toBeUndefined();
 		expect(
-			resolveBashShellPath({
-				getSettings: () => {
-					throw new Error("Extension runtime not initialized");
-				},
-			} as any),
+			resolveBashToolOptions(
+				{
+					getSettings: () => {
+						throw new Error("Extension runtime not initialized");
+					},
+				} as any,
+				{},
+			).shellPath,
 		).toBeUndefined();
 
 		const { pi, executeBash } = makePi(); // no getSettings at all
 		const { installLocalizedToolsOnce } = await loadPiUi();
 		installLocalizedToolsOnce(pi as any, makeI18n());
 		await expect(executeBash()).resolves.toBeUndefined();
-		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: undefined });
+		expect(createBashToolCalls[1]?.options).toEqual({ shellPath: undefined, commandPrefix: undefined });
 	});
 });

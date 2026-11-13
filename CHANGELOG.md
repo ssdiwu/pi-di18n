@@ -28,6 +28,18 @@ complete dictionaries for nine maintained locales.
 - Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology (供應商、工作階段、設定、串流、閒置); `en` stays empty by design.
 - Updated the compatibility baseline in the README from 0.83.x to 1.5.x; earlier baselines remain supported.
 
+### Added (from #7)
+- Retain both legacy (Pi ≤0.83) and 1.1.0 settings anchors in zh-CN, while other maintained packs keep their legacy anchors pending newer-copy backfill.
+- Calibrated zh-CN anchors against Pi 1.1.0 runtime behavior: confirmed dynamic keybinding hint lines (`↑/↓ move`, `ctrl+d delete`, `filters …`) still resolve to the zh-CN anchors, updated reworded or re-keyed copy (`option+←/→ branch`, `ctrl+x copy`, `Ctrl+S save`, `✓ New session started`, `Nothing to compact (session too small)`, ` ✓ configured` / ` • not configured` login-state rows), while preserving the legacy anchors needed by supported older hosts.
+
+### Fixed (from #7)
+- Restored supported legacy zh-CN UI anchors alongside newer Pi wording, and reinstated old-settings regression checks instead of exempting zh-CN.
+- Routed the slash fallback notice through the active locale bundle rather than always showing Simplified Chinese.
+- Restored runtime autocomplete-description cache hits for third-party commands while retaining Pi source tags, including scoped npm packages and git refs.
+- Added `scripts/tui-smoke.py` (pty-based real-TUI smoke test) as the TUI-layer regression gate; probe `matched` states alone are no longer treated as proof of localization.
+- Localized the Pi 1.1.0 settings additions (model default thinking level, TUI mode, fullscreen exit output / scrollbar / copy-on-select / wheel scrolling labels and descriptions) and translated the slash-fallback warning into Chinese.
+
+
 ## 0.2.1 - 2026-07-30
 
 ### Added

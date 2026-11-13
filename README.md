@@ -100,6 +100,12 @@ Pi allows an extension to replace a built-in tool, but rejects two extensions th
 
 Allowed values are `read`, `bash`, `edit`, and `write`; unknown values are ignored. Only the listed localized tool renderers are skipped. TUI localization, summary localization, `/lang think`, `i18n_get_locale`, and the remaining built-in tool renderers stay enabled. Reload or restart Pi after changing this extension-load setting.
 
+The localized bash override reads Pi's effective `shellPath` and `shellCommandPrefix` for each call through the host settings API when available. Older Pi versions use saved settings for the call's current working directory and project trust. This keeps custom shells and command prefixes active after localization.
+
+### OpenAI Responses compaction compatibility
+
+If summary generation reports `Unsupported parameter: prompt_cache_options`, verify the selected model's `compat.supportsExplicitPromptCacheMode` metadata against the configured endpoint. Pi's provider adapter emits that field for no-cache summary requests when this flag is `true`. For an endpoint that rejects the field, set the flag to `false` in the model configuration and reload its metadata. This omits the unsupported field; the endpoint may still apply implicit caching. `pi-di18n` continues to use separate summary routing IDs and does not reuse the conversation's cache key.
+
 ## `/lang think` Behavior
 
 `/lang think` does not set a separate language. It follows the current `/lang` locale.

@@ -5,7 +5,7 @@ import type {
 	ExtensionAPI,
 	ReadToolDetails,
 } from "@earendil-works/pi-coding-agent";
-import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint } from "@earendil-works/pi-coding-agent";
+import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import type { BuiltinToolOverrideName } from "./config";
 import type { I18nApi } from "./types";
@@ -58,23 +58,33 @@ function safePath(path: any): string {
 }
 
 /**
- * Read the effective `shellPath` setting at execute time (issue #6).
+ * Resolve the shell settings for the localized bash override (issue #6).
  *
- * `pi.getSettings()` returns the latest merged settings on every call, so this
- * must be invoked per execution — never cached at install time, or users who
- * change `shellPath` (e.g. Git Bash on Windows) would keep the stale value
- * until the tool override is re-registered.
+ * The user's `shellPath` (e.g. Git Bash on Windows) and `commandPrefix` live in
+ * Pi's settings. The override rebuilds the bash tool per execution, so these
+ * must be read at execute time — never cached at install time, or a settings
+ * change would only take effect after the tool is re-registered.
  *
- * Pi builds without this API (or a runtime not yet initialized) fall back to
- * the default shell discovery instead of failing the tool call.
+ * Current Pi exposes merged settings including runtime overrides via
+ * `pi.getSettings()`; older hosts need the saved-settings fallback with the
+ * same project trust. Hosts without either keep the default shell discovery
+ * instead of failing the tool call.
  */
-export function resolveBashShellPath(pi: ExtensionAPI): string | undefined {
+export function resolveBashToolOptions(pi: ExtensionAPI, ctx: any): BashToolOptions {
 	try {
-		const shellPath = (pi as unknown as { getSettings?: () => { shellPath?: string } }).getSettings?.()?.shellPath;
-		return typeof shellPath === "string" && shellPath.trim() ? shellPath : undefined;
+		const runtimePi = pi as ExtensionAPI & { getSettings?: () => Parameters<typeof SettingsManager.inMemory>[0] };
+		const settings = typeof runtimePi.getSettings === "function"
+			? SettingsManager.inMemory(runtimePi.getSettings())
+			: SettingsManager.create(ctx?.cwd, undefined, {
+				projectTrusted: typeof ctx?.isProjectTrusted === "function" && ctx.isProjectTrusted(),
+			});
+		return {
+			shellPath: settings.getShellPath(),
+			commandPrefix: settings.getShellCommandPrefix(),
+		};
 	} catch {
-		// No settings API / runtime not initialized: keep default shell.
-		return undefined;
+		// No settings API / runtime not initialized: keep the default shell.
+		return {};
 	}
 }
 
@@ -200,8 +210,11 @@ export function installLocalizedToolsOnce(
 			description: baseBash.description,
 			parameters: baseBash.parameters,
 			async execute(toolCallId, params, signal, onUpdate, ctx) {
-				// Read shellPath at execute time so settings changes apply without re-registration.
-				const options: BashToolOptions = { shellPath: resolveBashShellPath(pi) };
+				// Read the shell settings at execute time so a change to `shellPath`
+				// (e.g. Git Bash on Windows) applies without re-registering the tool.
+				// Current Pi exposes merged settings including runtime overrides;
+				// older hosts need the saved-settings fallback with the same project trust.
+				const options: BashToolOptions = resolveBashToolOptions(pi, ctx);
 				const tool = createBashTool(ctx.cwd, options);
 				return tool.execute(toolCallId, params as any, signal, onUpdate);
 			},
