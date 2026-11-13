@@ -226,13 +226,13 @@ export async function commandThink(args: string, ctx: any, i18n: I18nApi, cache:
 	if (token === "on" || token === "auto" || token === "enable") {
 		setEnabled(cache, true);
 		const langName = localeNeedsTranslate(locale) ? locale : `${locale}（提示：英文 locale 下 think 无实际效果，先 /lang <语言>）`;
-		ctx.ui?.notify?.(`think: 已开启（跟随 /lang 当前 locale=${langName}），发送消息时即生效`, "info");
+		ctx.ui?.notify?.(`think: 本会话已开启（跟随 /lang 当前 locale=${langName}），发送消息时即生效；此开关只影响当前会话`, "info");
 		// 首次由 before_provider_request 同步兜底翻译；预翻译留到下次 session_start（reload/重启）。
 		return;
 	}
 	if (token === "off" || token === "disable") {
 		setEnabled(cache, false);
-		ctx.ui?.notify?.("think: 已关闭（LLM 回到英文 description）", "info");
+		ctx.ui?.notify?.("think: 本会话已关闭（LLM 回到英文 description）；只影响当前会话，新会话仍按全局默认开启", "info");
 		return;
 	}
 	if (token === "clear") {
@@ -251,7 +251,7 @@ export async function commandThink(args: string, ctx: any, i18n: I18nApi, cache:
 	}
 	if (token === "" || token === "status") {
 		ctx.ui?.notify?.(
-			`think: ${isEnabled(cache) ? "已开启" : "已关闭"}（locale=${locale}，语言由 /lang 决定）`,
+			`think: 本会话${isEnabled(cache) ? "已开启" : "已关闭"}（locale=${locale}，语言由 /lang 决定；新会话默认开启）`,
 			"info",
 		);
 		return;

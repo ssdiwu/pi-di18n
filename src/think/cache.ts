@@ -11,7 +11,7 @@ import { statePath } from "../state-paths.js";
 
 const CACHE_PATH = statePath("think.json");
 
-const DEFAULT_CACHE: ThinkCache = { enabled: false, locales: {} };
+const DEFAULT_CACHE: ThinkCache = { enabled: true, locales: {} };
 
 function ensureLocale(cache: ThinkCache, locale: string): ThinkLocaleData {
 	let data = cache.locales[locale];
@@ -27,8 +27,9 @@ export function loadCache(): ThinkCache {
 		if (!existsSync(CACHE_PATH)) return { ...DEFAULT_CACHE, locales: {} };
 		const raw = readFileSync(CACHE_PATH, "utf-8");
 		const data = JSON.parse(raw) as Partial<ThinkCache>;
+		// enabled 缺省为 true：文件是旧版本或字段损坏时，默认开启而不是静默关闭。
 		return {
-			enabled: Boolean(data?.enabled),
+			enabled: data?.enabled === false ? false : true,
 			locales: data?.locales ?? {},
 		};
 	} catch {
@@ -67,9 +68,15 @@ export function isEnabled(cache: ThinkCache): boolean {
 	return cache.enabled;
 }
 
+/**
+ * 会话内开关：只改本会话的内存副本，不写回磁盘。
+ *
+ * 之前 on/off 直接落盘，多个 pi 会话并行时互相覆盖（最后写的赢），导致
+ * "我明明开了 think，新会话又关了"。开关本质是会话偏好；全局默认值由
+ * think.json 的 enabled 承担（手工或未来配置界面修改）。
+ */
 export function setEnabled(cache: ThinkCache, enabled: boolean): void {
 	cache.enabled = enabled;
-	saveCache(cache);
 }
 
 /** 清除指定 locale 的缓存（含 tool/param）。locale 省略则清空全部 locale。 */

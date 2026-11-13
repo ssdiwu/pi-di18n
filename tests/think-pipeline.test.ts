@@ -328,3 +328,34 @@ describe("/lang think doctor + clear（切片 3）", () => {
 		expect(msg).toContain("baseline 覆盖");
 	});
 });
+
+describe("think 开关默认值与会话隔离", () => {
+	it("无 think.json 时默认开启", () => {
+		const cache = loadThinkCache();
+		expect(cache.enabled).toBe(true);
+	});
+
+	it("think.json 里 enabled 缺失/损坏时默认开启（不静默关闭）", () => {
+		fs.writeFileSync(THINK_PATH, JSON.stringify({ locales: {} }), "utf-8");
+		expect(loadThinkCache().enabled).toBe(true);
+		fs.writeFileSync(THINK_PATH, "not json", "utf-8");
+		expect(loadThinkCache().enabled).toBe(true);
+	});
+
+	it("on/off 只改会话内存，不落盘（多会话互不覆盖）", async () => {
+		fs.writeFileSync(THINK_PATH, JSON.stringify({ enabled: true, locales: {} }), "utf-8");
+		const cache = loadThinkCache();
+		const i18n = makeI18n("zh-CN");
+		const ui = { ui: { notify: () => {} } };
+		await commandThink("off", ui, i18n, cache);
+		expect(cache.enabled).toBe(false);
+		// 落盘文件不受影响
+		const persisted = JSON.parse(fs.readFileSync(THINK_PATH, "utf-8"));
+		expect(persisted.enabled).toBe(true);
+		await commandThink("on", ui, i18n, cache);
+		expect(cache.enabled).toBe(true);
+		// 新会话（重新 load）仍读全局默认，而不是上一个会话的 off
+		fs.writeFileSync(THINK_PATH, JSON.stringify({ enabled: true, locales: {} }), "utf-8");
+		expect(loadThinkCache().enabled).toBe(true);
+	});
+});

@@ -25,7 +25,8 @@ export interface ThinkLocaleData {
 /**
  * 完整缓存结构，落盘到 ~/.pi/agent/state/pi-di18n/think.json。
  *
- * - enabled：/lang think 开关状态（默认 false，ADR 0002）。
+ * - enabled：全局默认开关（默认 true）。每个会话启动时读一次作为初始值；
+ *   会话内 /lang think on|off 只改本会话内存，不写回，避免并行会话互相覆盖。
  * - locales：按 locale 组织的翻译缓存。只缓存用过的 locale，避免无限增长。
  */
 export interface ThinkCache {

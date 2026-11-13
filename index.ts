@@ -47,7 +47,7 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 	// so we finalize in session_start.
 	const i18n = new I18nRegistry({ locale: "en", fallbackLocale: "en" });
 
-	// B 线（思考语言本地化）缓存：开关状态 + 运行时翻译缓存。默认关（ADR 0002）。
+	// B 线（思考语言本地化）缓存：翻译缓存 + 会话级开关（初始值读 think.json，默认开；on/off 只改本会话，不落盘）。
 	const thinkCache = loadThinkCache();
 	// A 线 runtime UI description 缓存：扩展/技能/提示词命令说明，默认不阻塞 UI。
 	const uiCache = loadUiCache();
