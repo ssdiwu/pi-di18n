@@ -2,22 +2,31 @@
 
 All notable changes to `pi-di18n` are documented here.
 
-## Unreleased
+## 0.2.2 - 2026-11-13
+
+Pi 1.5.x compatibility pass. The extension now localizes the whole Pi 1.5.2 TUI
+(core UI, selectors, slash commands, hotkeys table, settings) and ships
+complete dictionaries for nine maintained locales.
+
 ### Fixed
 - Fixed full TUI localization silently no-oping on Pi 1.5.x: slash command descriptions now use a primary patch (the bundle keeps `BUILTIN_SLASH_COMMANDS` internal, so the provider built by `setupAutocompleteProvider` is patched in place) instead of falling back to the autocomplete-output layer.
 - Fixed `I18nRegistry.t("pi.slash.<name>.description")` not resolving for bundles that ship only the namespaced key: registered messages are now also stored under their prefix-stripped name.
 - Fixed long sentences (editor descriptions, prompt disclaimers) never matching a dictionary entry because pi-tui wraps them across screen lines: component source text is now translated before rendering.
 - Fixed extension prompt components (`ExtensionEditorComponent`, `ExtensionSelectorComponent`, `ExtensionInputComponent`), which core commands such as `/bug` open outside `showSelector`, staying in English.
+- Fixed `/lang think on|off` overwriting the global switch for every other session: the toggle is now session-scoped, and the global default in `think.json` is read once per session. The default is now **on**; a missing, damaged, or field-less `think.json` no longer silently disables it.
+- Fixed bash tool override dropping the user's configured `shellPath`: the localized rebuild now forwards the effective setting from `pi.getSettings()` on every execution instead of silently ignoring it ([#6](https://github.com/ssdiwu/pi-di18n/issues/6)).
+- Fixed zh-TW ignoring the shipped dictionary: the runtime now applies the legacy rules first (they carry the regex rules for dynamic text such as "73 calls, 73 results", which a key→value pack cannot express) and the exact pack afterwards, so both the dynamic and the newly added static strings are localized.
+- Fixed roughly 30 dictionary entries whose value equalled their key (`Theme`→`Theme`, `auto`→`auto`, …) in `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR`. The exact-map filter drops such entries, so those UI strings fell back to English.
 
 ### Added
 - Localized the Pi 1.5.x additions: the `/thinking` and `/bug` slash commands (replacing the removed `/llama`), selector hint lines (`Enter to select · Esc to go back`, `Enter/Space to change`, `Type to filter`), the `/hotkeys` table rows, the settings rows added since 1.1 (cache warming, session share destination, Mermaid diagrams, quiet startup, …) and their enum values.
-- Added `tests/pi-15x-compat.test.ts` pinning the Pi 1.5.x compatibility behaviour.
+- Added `tests/pi-15x-compat.test.ts` pinning the Pi 1.5.x compatibility behaviour, and a contract test for the core-hacks dictionary packs.
 
 ### Changed
 - Removed the `/llama` slash description from every locale bundle: the command no longer exists in Pi 1.5.x.
 - Consolidated the duplicated `slash.*` / `pi.slash.*` description keys in all locale bundles into the namespaced form.
-- Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology (供應商、工作階段、設定、串流、閒置) via the zh-TW legacy table plus phrase-level conversion; `en` stays empty by design.
-- Fixed bash tool override dropping the user's configured `shellPath`: the localized rebuild now forwards the effective setting from `pi.getSettings()` on every execution instead of silently ignoring it (GitHub issue #6).
+- Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology (供應商、工作階段、設定、串流、閒置); `en` stays empty by design.
+- Updated the compatibility baseline in the README from 0.83.x to 1.5.x; earlier baselines remain supported.
 
 ## 0.2.1 - 2026-07-30
 
