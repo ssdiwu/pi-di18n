@@ -71,4 +71,53 @@ describe("pi 0.79 new settings localization", () => {
 			"使用者訊息、助理訊息與思考的水平內距",
 		);
 	});
+
+	// Pi 真实链路：activateItem() 用 values.indexOf(currentValue) 循环切换、
+	// 子菜单用值相等预选，因此 currentValue 必须始终保留英文原始值；翻译只
+	// 发生在 renderMainList 渲染期间（渲染后还原）。否则首次切换会从中文
+	// 跳回第一项（截图问题：切换后 TUI 模式值从「全屏」变回英文 fullscreen）。
+	it("renders enum values localized while keeping the stored value verbatim", async () => {
+		const { patchSettingsListForTest } = await import("../src/core-hacks.ts");
+		const zhCN = api("zh-CN");
+
+		// 模拟 Pi SettingsList 的最小行为（含原始 activateItem 的 indexOf 循环）。
+		class MockSettingsList {
+			items = [
+				{ id: "tui-mode", label: "TUI mode", currentValue: "fullscreen", values: ["regular", "fullscreen"] },
+				{ id: "warnings", label: "Warnings", currentValue: "configure", submenu: () => ({}) },
+				];
+			renderMainList(width: number) {
+				return this.items.map((i: any) => `${i.label} ${i.currentValue}`.padEnd(width));
+			}
+			activateItem() {
+				const item = this.items[0];
+				const next = item.values[(item.values.indexOf(item.currentValue) + 1) % item.values.length];
+				item.currentValue = next;
+			}
+		}
+		const list: any = new MockSettingsList();
+		patchSettingsListForTest(list, zhCN);
+		const lines = list.renderMainList(80);
+		expect(lines[0]).toContain("TUI 模式");
+		expect(lines[0]).toContain("全屏");
+		expect(list.items[0].currentValue).toBe("fullscreen"); // 渲染后还原
+
+		// 译文比原文宽的枚举值不能被宽度保护截断（all → 全…）：值不是预宽行，
+		// 上游渲染会自己按剩余宽度截断，这里不该提前限宽。
+		list.items[0].currentValue = "all";
+		const wide = list.renderMainList(80);
+		expect(wide[0]).toContain("全部");
+		expect(wide[0]).not.toContain("…");
+		expect(list.items[0].currentValue).toBe("all");
+
+		list.activateItem(); // Enter 循环切换：indexOf 依赖原始值
+		expect(list.items[0].currentValue).toBe("regular");
+		const after = list.renderMainList(80);
+		expect(after[0]).toContain("常规");
+		expect(list.items[0].currentValue).toBe("regular");
+
+		// 子菜单预选同样依赖原始值相等。
+		expect(list.items[1].currentValue).toBe("configure");
+		expect(typeof list.items[1].submenu()).toBe("object");
+	});
 });

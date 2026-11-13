@@ -2,6 +2,14 @@
 
 All notable changes to `pi-di18n` are documented here.
 
+## Unreleased
+
+### Fixed
+- Fixed settings rows reverting to English after changing a value (e.g. TUI mode showing `fullscreen` again): the stored value now stays verbatim while rendering translates it, so cycling through values (Enter/Space) and submenu pre-selection keep working; previously the value was translated in place once, which also broke the first cycle (it jumped back to the first option).
+- Fixed localized settings values being clipped when wider than the source token (`all` rendering as `全…`): value rendering no longer applies the keep-original-width guard, since the upstream component truncates values to the free width itself.
+- Replaced the English enum tokens inside translated setting descriptions (`'one-at-a-time'`, `'all'`, `'auto'`) with the localized terms in all eight maintained language packs, matching the localized value rows.
+- Fixed the global think default being poisoned on disk: any cache write serialized the session's runtime toggle into `think.json`, so a `/lang think off` in one session (or a legacy pre-0.2.2 session) permanently disabled every future session, and the session-scoped `/lang think on` could never repair it. Cache writes now persist the disk-level default, never the session toggle. Existing damaged files need a one-time manual fix: set `"enabled": true` in `~/.pi/agent/state/pi-di18n/think.json`.
+
 ## 0.2.2 - 2026-11-13
 
 Pi 1.5.x compatibility pass. The extension now localizes the whole Pi 1.5.2 TUI

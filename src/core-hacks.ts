@@ -1809,7 +1809,6 @@ function patchSettingsSelector(selector: any): void {
 			for (const item of list.items) {
 				if (typeof item?.label === "string") item.label = tUiLine(api, item.label);
 				if (typeof item?.description === "string") item.description = tUiLine(api, item.description);
-				if (typeof item?.currentValue === "string") item.currentValue = tUiLine(api, item.currentValue);
 
 				if (typeof item?.submenu === "function" && !(item as any).__pi_i18n_submenu_patched__) {
 					(item as any).__pi_i18n_submenu_patched__ = true;
@@ -1822,6 +1821,41 @@ function patchSettingsSelector(selector: any): void {
 					};
 				}
 			}
+		}
+
+		// Enum values ("fullscreen", "true", …) are whole-line-only keys, so the
+		// render-line fallback never localizes a settings row's value. Patch
+		// renderMainList to display the translated currentValue while keeping the
+		// stored value verbatim: activateItem() cycles via values.indexOf(currentValue)
+		// and submenus pre-select via value equality, so translating in place would
+		// break cycling and re-open with the wrong selection.
+		if (list?.constructor?.prototype?.renderMainList) {
+			patchOnce(list.constructor.prototype, "settings_list_render_main", () => {
+				const orig = list.constructor.prototype.renderMainList;
+				list.constructor.prototype.renderMainList = function patchedRenderMainList(width: number) {
+					const curApi = getCurrentI18n();
+					if (!curApi) return orig.call(this, width);
+					const translated = new Map<any, string>();
+					try {
+						for (const item of this.items ?? []) {
+							if (typeof item?.currentValue !== "string") continue;
+							// No width guard here: values are not pre-sized lines — the
+							// upstream render truncates them to the free width itself.
+							// tUiLine's keep-original-width rule would clip translations
+							// wider than the source token (all → 全…).
+							const s = String(item.currentValue);
+							const next = tSelector(curApi, tCore(curApi, s));
+							if (next !== s) {
+								translated.set(item, item.currentValue);
+								item.currentValue = next;
+							}
+						}
+						return orig.call(this, width);
+					} finally {
+						for (const [item, original] of translated) item.currentValue = original;
+					}
+				};
+			});
 		}
 
 		// Fallback: patch hint-row producer in SettingsList.
@@ -1931,6 +1965,11 @@ function patchLoginDialogPrototype(proto: any): void {
 export function patchLoginDialogRenderForTest(proto: any, i18n: I18nApi): void {
 	setCurrentI18n(i18n);
 	patchLoginDialogPrototype(proto);
+}
+
+export function patchSettingsListForTest(list: any, i18n: I18nApi): void {
+	setCurrentI18n(i18n);
+	patchSettingsSelector({ settingsList: list });
 }
 
 // Localize a custom UI component (e.g. /llama LlamaView) returned by an

@@ -11,7 +11,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { applyOnProviderRequest, commandThink, prefetchOnSessionStart, runThinkDoctor } from "../src/think/localize.js";
-import { loadCache as loadThinkCache } from "../src/think/cache.js";
+import { loadCache as loadThinkCache, putCachedEntry } from "../src/think/cache.js";
 import type { I18nApi } from "../src/types.js";
 
 // 最小 i18n：返回固定 locale
@@ -357,5 +357,27 @@ describe("think 开关默认值与会话隔离", () => {
 		// 新会话（重新 load）仍读全局默认，而不是上一个会话的 off
 		fs.writeFileSync(THINK_PATH, JSON.stringify({ enabled: true, locales: {} }), "utf-8");
 		expect(loadThinkCache().enabled).toBe(true);
+	});
+
+	// 2026-11-14 故障回归：磁盘 think.json 曾被会话运行时 enabled:false 毒化，
+	// 之后每个新会话都启动为关闭，且会话级 on 无法纠正（on 不落盘）。
+	it("缓存写入落盘的是磁盘全局默认，不是会话运行时开关（毒化修复）", () => {
+		fs.writeFileSync(THINK_PATH, JSON.stringify({ enabled: true, locales: {} }), "utf-8");
+		const cache = loadThinkCache();
+		cache.enabled = false; // 会话内 off
+		putCachedEntry(cache, "zh-CN", "tool", "__probe__", "probe en", "探测");
+		const persisted = JSON.parse(fs.readFileSync(THINK_PATH, "utf-8"));
+		expect(persisted.enabled).toBe(true); // 磁盘不被会话 off 毒化
+		expect(persisted.locales["zh-CN"].tool["__probe__"].translated).toBe("探测"); // 翻译照常落盘
+	});
+
+	it("磁盘全局默认为 false 时缓存写入不把它改回 true（不静默翻转默认）", () => {
+		fs.writeFileSync(THINK_PATH, JSON.stringify({ enabled: false, locales: {} }), "utf-8");
+		const cache = loadThinkCache();
+		expect(cache.enabled).toBe(false);
+		cache.enabled = true; // 会话内 on
+		putCachedEntry(cache, "zh-CN", "tool", "__probe__", "probe en", "探测");
+		const persisted = JSON.parse(fs.readFileSync(THINK_PATH, "utf-8"));
+		expect(persisted.enabled).toBe(false); // 磁盘默认保持 false，等用户手工改
 	});
 });

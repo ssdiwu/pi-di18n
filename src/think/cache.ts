@@ -15,6 +15,12 @@ const cachePath = (): string => statePath("think.json");
 
 const DEFAULT_CACHE: ThinkCache = { enabled: true, locales: {} };
 
+// 磁盘上的全局默认（think.json 的 enabled，手工/配置界面修改）。会话内
+// /lang think on|off 只改内存副本，落盘时必须写这个全局默认而不是会话
+// 运行时值——否则任意会话 off 后的一次缓存写入会把 false 毒化进磁盘，
+// 之后每个新会话都启动为关闭，且会话级 on 无法纠正（2026-11-14 故障根因）。
+let diskEnabled = true;
+
 function ensureLocale(cache: ThinkCache, locale: string): ThinkLocaleData {
 	let data = cache.locales[locale];
 	if (!data) {
@@ -27,15 +33,20 @@ function ensureLocale(cache: ThinkCache, locale: string): ThinkLocaleData {
 export function loadCache(): ThinkCache {
 	const cachePathValue = cachePath();
 	try {
-		if (!existsSync(cachePathValue)) return { ...DEFAULT_CACHE, locales: {} };
+		if (!existsSync(cachePathValue)) {
+			diskEnabled = true;
+			return { ...DEFAULT_CACHE, locales: {} };
+		}
 		const raw = readFileSync(cachePathValue, "utf-8");
 		const data = JSON.parse(raw) as Partial<ThinkCache>;
 		// enabled 缺省为 true：文件是旧版本或字段损坏时，默认开启而不是静默关闭。
+		diskEnabled = data?.enabled === false ? false : true;
 		return {
-			enabled: data?.enabled === false ? false : true,
+			enabled: diskEnabled,
 			locales: data?.locales ?? {},
 		};
 	} catch {
+		diskEnabled = true;
 		return { ...DEFAULT_CACHE, locales: {} };
 	}
 }
@@ -43,7 +54,8 @@ export function loadCache(): ThinkCache {
 export function saveCache(cache: ThinkCache): void {
 	try {
 		mkdirSync(dirname(cachePath()), { recursive: true });
-		writeFileSync(cachePath(), JSON.stringify(cache, null, 2), "utf-8");
+		// enabled 写磁盘全局默认，不写会话运行时值（见 diskEnabled 注释）。
+		writeFileSync(cachePath(), JSON.stringify({ ...cache, enabled: diskEnabled }, null, 2), "utf-8");
 	} catch {
 		// 缓存写入失败不影响主流程（下次重算）
 	}

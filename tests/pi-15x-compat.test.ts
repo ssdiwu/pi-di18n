@@ -99,7 +99,7 @@ describe("zh-CN UI dictionary coverage", () => {
 				i18n as any,
 				"Enter while streaming queues steering messages. 'one-at-a-time': deliver one, wait for response. 'all': deliver all at once.",
 			),
-		).toBe("流式传输时按 Enter 会将引导消息排队。'one-at-a-time'：一次发送一条并等待响应。'all'：一次发送全部。");
+		).toBe("流式传输时按 Enter 会将引导消息排队。'逐条发送'：一次发送一条并等待响应。'全部'：一次发送全部。");
 	});
 
 	it("covers the /hotkeys markdown table rows", () => {
