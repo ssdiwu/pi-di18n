@@ -57,7 +57,7 @@ describe("slash command i18n coverage", () => {
 });
 
 describe("slash command autocomplete description localization", () => {
-	it("localizes /llama and preserves the autocomplete source tag prefix", () => {
+	it("translates builtin commands and preserves the autocomplete source tag prefix", () => {
 		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
 		i18n.registerBundle(loadBundle("en"));
 		i18n.registerBundle(loadBundle("zh-CN"));
@@ -65,15 +65,14 @@ describe("slash command autocomplete description localization", () => {
 		// Simulate the real autocomplete item shape: extension commands get a
 		// "[t]"/"[u]" source tag prefix from InteractiveMode.prefixAutocompleteDescription,
 		// and getSuggestions returns items with { value, label, description } (no name).
-		// The item's English description is not in the bundle, so the runtime cache
-		// path answers with the source text (no stale translation for unknown items).
+		// Builtin command descriptions resolve by name through the bundle.
 		const itemWithTag = {
-			value: "llama",
-			label: "llama",
-			description: "[t] Manage llama.cpp router models",
+			value: "reload",
+			label: "reload",
+			description: "[t] Reload keybindings, extensions, skills, prompts, themes, and context files",
 		};
 		const out = tSlashDescForTest(i18n as any, itemWithTag);
-		expect(out).toBe("[t] Manage llama.cpp router models");
+		expect(out).toBe("[t] 重新加载键位、扩展、技能、提示词、主题和上下文文件");
 
 		// Builtin commands have no source tag; translation is the bare value.
 		const itemBare = {
