@@ -118,7 +118,7 @@ Test Files  25 passed (25)
 Tests       109 passed (109)
 ```
 
-詳細は [`doc/40-版本实施方案/verification-2026-07-30.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-07-30.md) を参照してください。
+過去の検証記録は [`doc/90-归档/40-版本实施方案/`](./doc/90-%E5%BD%92%E6%A1%A3/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/) を参照してください。
 
 ## Compatibility
 

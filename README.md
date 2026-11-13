@@ -155,7 +155,7 @@ npm test
 npm pack --dry-run
 ```
 
-See [`doc/40-版本实施方案/verification-2026-07-30.md`](./doc/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/verification-2026-07-30.md) for the Pi 0.83 verification snapshot and detailed records.
+Historical verification records live under [`doc/90-归档/40-版本实施方案/`](./doc/90-%E5%BD%92%E6%A1%A3/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/).83 verification snapshot and detailed records.
 
 ## Directory Layout
 

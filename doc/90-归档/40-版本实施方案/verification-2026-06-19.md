@@ -153,3 +153,7 @@ tab 范围（全/筛）
 - 自动测试通过
 - 打包 dry-run 通过
 - 真实 `pi` TUI 中 `model/settings/tree/login/logout/trust/resume` 与 `/export` `/import` `/copy` 关键漏翻点已修复
+
+---
+
+> **归档说明（2026-11-14）**：历史版本方案/验证记录，仅追溯用。现行验证记录见 `doc/40-版本实施方案/`。

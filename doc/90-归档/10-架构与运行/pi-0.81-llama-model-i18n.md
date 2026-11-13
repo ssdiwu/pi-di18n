@@ -37,3 +37,6 @@ Pi 0.80.8 起为 `/model` 引入后台模型目录刷新，在 `model-selector.j
 ```
 
 期望：`/model` 刷新状态、`/llama` 模型管理界面标题与操作提示均为中文；`slashDescMode=primary`，`probe.enabled=true`。
+---
+
+> **归档说明（2026-11-14）**：本文记录单版本适配历史，不描述当前架构。当前机制以 `doc/10-架构与运行/` 现行文档为准。

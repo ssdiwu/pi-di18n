@@ -62,3 +62,7 @@ Warning: No models match pattern "ghost/model"
 ```
 
 该内容发生在 `core-hacks` 安装之前，扩展无法追溯改写已输出终端内容；extension 安装后的相同 warning 路径已有语言包映射。
+
+---
+
+> **归档说明（2026-11-14）**：历史版本方案/验证记录，仅追溯用。现行验证记录见 `doc/40-版本实施方案/`。
