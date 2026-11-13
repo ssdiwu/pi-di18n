@@ -9,7 +9,9 @@ import { dirname } from "node:path";
 import type { ThinkCache, ThinkEntry, ThinkLocaleData, ThinkType } from "./types.ts";
 import { statePath } from "../state-paths.js";
 
-const CACHE_PATH = statePath("think.json");
+// 惰性解析：statePath 每次读取 PI_DI18N_STATE_DIR，保证测试在模块导入后
+// 设置的环境变量仍生效（cache.ts 的消费者众多，导入早于测试 beforeAll）。
+const cachePath = (): string => statePath("think.json");
 
 const DEFAULT_CACHE: ThinkCache = { enabled: true, locales: {} };
 
@@ -23,9 +25,10 @@ function ensureLocale(cache: ThinkCache, locale: string): ThinkLocaleData {
 }
 
 export function loadCache(): ThinkCache {
+	const cachePathValue = cachePath();
 	try {
-		if (!existsSync(CACHE_PATH)) return { ...DEFAULT_CACHE, locales: {} };
-		const raw = readFileSync(CACHE_PATH, "utf-8");
+		if (!existsSync(cachePathValue)) return { ...DEFAULT_CACHE, locales: {} };
+		const raw = readFileSync(cachePathValue, "utf-8");
 		const data = JSON.parse(raw) as Partial<ThinkCache>;
 		// enabled 缺省为 true：文件是旧版本或字段损坏时，默认开启而不是静默关闭。
 		return {
@@ -39,8 +42,8 @@ export function loadCache(): ThinkCache {
 
 export function saveCache(cache: ThinkCache): void {
 	try {
-		mkdirSync(dirname(CACHE_PATH), { recursive: true });
-		writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), "utf-8");
+		mkdirSync(dirname(cachePath()), { recursive: true });
+		writeFileSync(cachePath(), JSON.stringify(cache, null, 2), "utf-8");
 	} catch {
 		// 缓存写入失败不影响主流程（下次重算）
 	}

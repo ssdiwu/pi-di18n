@@ -2,7 +2,10 @@
 // 覆盖纯函数：baseline 查询、cache 失效比对、三层查询顺序、describe 收集。
 // translator/localize 涉 LLM + pi runtime，留待切片 4。
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import { getBaselineTranslation, hasBaseline } from "../src/think/baseline.js";
 import { getCachedEntry, putCachedEntry, isEnabled, setEnabled } from "../src/think/cache.js";
 import { collectDescriptions, extractParamDescriptions } from "../src/think/describe.js";
@@ -11,6 +14,19 @@ import type { ThinkCache } from "../src/think/types.js";
 function emptyCache(): ThinkCache {
 	return { enabled: false, locales: {} };
 }
+
+// putCachedEntry 会自动落盘，先指向隔离目录，避免污染真实 ~/.pi。
+const TEST_STATE_DIR = path.join(os.tmpdir(), `pi-di18n-think-core-${process.pid}`);
+
+beforeAll(() => {
+	process.env.PI_DI18N_STATE_DIR = TEST_STATE_DIR;
+	fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
+});
+
+afterAll(() => {
+	fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
+	delete process.env.PI_DI18N_STATE_DIR;
+});
 
 describe("baseline 预制翻译查询", () => {
 	it("zh-CN 命中 baseline 的 tool description", () => {

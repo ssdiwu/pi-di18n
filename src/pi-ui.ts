@@ -1,4 +1,10 @@
-import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@earendil-works/pi-coding-agent";
+import type {
+	BashToolDetails,
+	BashToolOptions,
+	EditToolDetails,
+	ExtensionAPI,
+	ReadToolDetails,
+} from "@earendil-works/pi-coding-agent";
 import { createBashTool, createEditTool, createReadTool, createWriteTool, keyHint } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import type { BuiltinToolOverrideName } from "./config";
@@ -49,6 +55,27 @@ function localeNativeLabel(locale: string): string {
 
 function safePath(path: any): string {
 	return typeof path === "string" && path.trim() ? path : "?";
+}
+
+/**
+ * Read the effective `shellPath` setting at execute time (issue #6).
+ *
+ * `pi.getSettings()` returns the latest merged settings on every call, so this
+ * must be invoked per execution — never cached at install time, or users who
+ * change `shellPath` (e.g. Git Bash on Windows) would keep the stale value
+ * until the tool override is re-registered.
+ *
+ * Pi builds without this API (or a runtime not yet initialized) fall back to
+ * the default shell discovery instead of failing the tool call.
+ */
+export function resolveBashShellPath(pi: ExtensionAPI): string | undefined {
+	try {
+		const shellPath = (pi as unknown as { getSettings?: () => { shellPath?: string } }).getSettings?.()?.shellPath;
+		return typeof shellPath === "string" && shellPath.trim() ? shellPath : undefined;
+	} catch {
+		// No settings API / runtime not initialized: keep default shell.
+		return undefined;
+	}
 }
 
 let _toolsInstalled = false;
@@ -173,7 +200,9 @@ export function installLocalizedToolsOnce(
 			description: baseBash.description,
 			parameters: baseBash.parameters,
 			async execute(toolCallId, params, signal, onUpdate, ctx) {
-				const tool = createBashTool(ctx.cwd);
+				// Read shellPath at execute time so settings changes apply without re-registration.
+				const options: BashToolOptions = { shellPath: resolveBashShellPath(pi) };
+				const tool = createBashTool(ctx.cwd, options);
 				return tool.execute(toolCallId, params as any, signal, onUpdate);
 			},
 			renderCall(args: any, theme, _context) {

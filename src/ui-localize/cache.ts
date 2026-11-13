@@ -10,8 +10,9 @@ export type UiEntry = { en: string; translated: string };
 export type UiLocaleData = { command: Record<string, UiEntry> };
 export type UiCache = { locales: Record<string, UiLocaleData> };
 
-const CACHE_PATH = statePath("ui.json");
 const DEFAULT_CACHE: UiCache = { locales: {} };
+// 惰性解析：statePath 每次读取 PI_DI18N_STATE_DIR，保证测试在模块导入后设置的环境变量仍生效。
+const cachePath = (): string => statePath("ui.json");
 let activeCache: UiCache = loadUiCache();
 
 function ensureLocale(cache: UiCache, locale: string): UiLocaleData {
@@ -25,8 +26,9 @@ function ensureLocale(cache: UiCache, locale: string): UiLocaleData {
 
 export function loadUiCache(): UiCache {
 	try {
-		if (!existsSync(CACHE_PATH)) return { ...DEFAULT_CACHE, locales: {} };
-		const raw = readFileSync(CACHE_PATH, "utf-8");
+		const path = cachePath();
+		if (!existsSync(path)) return { ...DEFAULT_CACHE, locales: {} };
+		const raw = readFileSync(path, "utf-8");
 		const data = JSON.parse(raw) as Partial<UiCache>;
 		return { locales: data?.locales ?? {} };
 	} catch {
@@ -36,8 +38,9 @@ export function loadUiCache(): UiCache {
 
 export function saveUiCache(cache: UiCache): void {
 	try {
-		mkdirSync(dirname(CACHE_PATH), { recursive: true });
-		writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), "utf-8");
+		const path = cachePath();
+		mkdirSync(dirname(path), { recursive: true });
+		writeFileSync(path, JSON.stringify(cache, null, 2), "utf-8");
 	} catch {
 		// Cache write failure must not affect UI.
 	}
