@@ -71,25 +71,28 @@ describe("core-hacks 词典包对齐", () => {
 		}
 	});
 
-	it("keeps the zh-TW runtime rendering on the legacy table", () => {
-		// 核心 UI 行走 legacy 表（byte-for-byte 守卫），pack 不得改变它已经产出的文案。
-		// 例外：legacy 尚未翻译的 3 个键，pack 提供了更准确的台湾译法，但运行时仍用 legacy 结果。
+	it("renders zh-TW through legacy rules first, then the shipped pack", () => {
+		// 运行时：legacy 先跑（它带有正则规则，能处理 "73 calls, 73 results" 这类
+		// 动态文本，逐键 pack 无法表达），pack 再补上 legacy 未覆盖的静态键。
+		// 因此 pack 的值只在 legacy 未产出结果时生效。
 		const exact = readPack("zh-TW.json").exact;
 		const zhTW = api("zh-TW");
-		const legacyGaps = new Set([
-			"Tokens",
-			"Type to filter · Enter to select · Esc to go back",
-			"  Type to filter · Enter to select · Esc to go back",
-		]);
 		for (const key of Object.keys(exact)) {
-			const legacy = translateUiLineForTest(zhTW, key);
-			if (legacy === key) continue; // legacy 未覆盖，pack 负责
-			if (legacyGaps.has(key)) {
-				expect(legacy, `zh-TW legacy 输出不应被改动: ${key}`).toBeTypeOf("string");
-				expect(exact[key], `zh-TW pack: ${key}`).not.toBe(legacy);
-				continue;
+			const rendered = translateUiLineForTest(zhTW, key);
+			if (rendered === key) continue; // 两层都没覆盖：保留英文
+			expect(rendered, `zh-TW 应已本地化: ${key}`).not.toBe(key);
+		}
+		// legacy 独有的动态规则仍然生效（pack 表达不了这种模式）。
+		expect(translateUiLineForTest(zhTW, "Tools: 73 calls, 73 results")).toBe("工具：73 次呼叫，73 個結果");
+		expect(translateUiLineForTest(zhTW, "Tokens")).toBe("令牌");
+	});
+
+	it("keeps the zh-TW pack free of mainland wording", () => {
+		const exact = readPack("zh-TW.json").exact;
+		for (const [key, value] of Object.entries(exact)) {
+			for (const mainland of ["提供商", "擴充套件", "流式", "空閒", "配置", "智慧體", "會話"]) {
+				expect(value.includes(mainland), `${key}: 残留 ${mainland}`).toBe(false);
 			}
-			expect(exact[key], `zh-TW: ${key}`).toBe(legacy);
 		}
 	});
 });

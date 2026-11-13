@@ -603,8 +603,15 @@ function tCoreFromPack(i18n: I18nApi, msg: string): string {
 }
 
 function tCore(i18n: I18nApi, msg: string): string {
-	// Hard guard: preserve legacy zh-TW monkeypatch behavior byte-for-byte.
-	if (isZhTw(i18n.getLocale())) return tCoreLegacyZhTw(i18n, msg);
+	// zh-TW has a shipped exact-pack. The legacy table also carries regex rules
+	// for dynamic text ("73 calls, 73 results") that a key->value pack cannot
+	// express, so the pack runs first and the legacy pass handles what is left.
+	if (isZhTw(i18n.getLocale())) {
+		const pack = getCoreHackPack(i18n.getLocale());
+		if (!pack) return tCoreLegacyZhTw(i18n, msg);
+		const legacy = tCoreLegacyZhTw(i18n, String(msg ?? ""));
+		return applyExactMap(legacy, pack.exact);
+	}
 	return tCoreFromPack(i18n, msg);
 }
 
@@ -1408,7 +1415,12 @@ function tSelectorLegacyZhTw(i18n: I18nApi, line: string): string {
 
 
 function tSelector(i18n: I18nApi, line: string): string {
-	if (isZhTw(i18n.getLocale())) return tSelectorLegacyZhTw(i18n, line);
+	if (isZhTw(i18n.getLocale())) {
+		const twPack = getCoreHackPack(i18n.getLocale());
+		if (!twPack) return tSelectorLegacyZhTw(i18n, line);
+		const legacy = tSelectorLegacyZhTw(i18n, String(line ?? ""));
+		return applyExactMap(legacy, twPack.exact);
+	}
 	const pack = getCoreHackPack(i18n.getLocale());
 	if (!pack) return isZhCn(i18n.getLocale()) ? postprocessZhCnUiLine(String(line ?? "")) : line;
 	const translated = applyExactMap(String(line ?? ""), pack.exact);
