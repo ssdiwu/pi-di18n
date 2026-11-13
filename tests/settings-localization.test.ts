@@ -5,6 +5,7 @@ import { translateUiLineForTest } from "../src/core-hacks.ts";
 
 const PACK_DIR = join(process.cwd(), "src/core-hacks-locales");
 // pi ≤0.83 legacy anchors: still present in every pack except zh-CN (which moved to the 1.1.0 wording).
+// zh-TW.json (0.2.2) mirrors zh-CN keys but keeps the legacy wording via the zh-TW legacy table.
 const LEGACY_SETTINGS = [
 	"Show transcript notices for significant prompt-cache misses",
 	"Horizontal padding for user messages, assistant messages, and thinking",
@@ -23,7 +24,7 @@ function api(locale: string) {
 describe("pi 0.79 new settings localization", () => {
 	it("keeps every maintained non-English pack complete", () => {
 		const files = readdirSync(PACK_DIR).filter((file) => file.endsWith(".json") && file !== "en.json").sort();
-		expect(files).toEqual(["de.json", "es.json", "fr.json", "ja.json", "ko.json", "pt-BR.json", "zh-CN.json"]);
+		expect(files).toEqual(["de.json", "es.json", "fr.json", "ja.json", "ko.json", "pt-BR.json", "zh-CN.json", "zh-TW.json"]);
 
 		for (const file of files) {
 			const pack = JSON.parse(readFileSync(join(PACK_DIR, file), "utf8"));

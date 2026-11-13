@@ -17,7 +17,7 @@ describe("Pi 0.83 tool output status localization", () => {
 			.map((file) => basename(file, ".json"))
 			.sort();
 
-		expect(locales).toEqual(["de", "es", "fr", "ja", "ko", "pt-BR", "zh-CN"]);
+		expect(locales).toEqual(["de", "es", "fr", "ja", "ko", "pt-BR", "zh-CN", "zh-TW"]);
 
 		for (const locale of locales) {
 			for (const source of TOOL_OUTPUT_STATUS) {

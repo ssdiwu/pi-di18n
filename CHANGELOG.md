@@ -16,6 +16,8 @@ All notable changes to `pi-di18n` are documented here.
 ### Changed
 - Removed the `/llama` slash description from every locale bundle: the command no longer exists in Pi 1.5.x.
 - Consolidated the duplicated `slash.*` / `pi.slash.*` description keys in all locale bundles into the namespaced form.
+- Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology (供應商、工作階段、設定、串流、閒置) via the zh-TW legacy table plus phrase-level conversion; `en` stays empty by design.
+- Fixed bash tool override dropping the user's configured `shellPath`: the localized rebuild now forwards the effective setting from `pi.getSettings()` on every execution instead of silently ignoring it (GitHub issue #6).
 
 ## 0.2.1 - 2026-07-30
 
