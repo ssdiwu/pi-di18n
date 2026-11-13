@@ -135,7 +135,7 @@ Test Files  25 passed (25)
 Tests       109 passed (109)
 ```
 
-历史验证记录见 [`doc/90-归档/40-版本实施方案/`](./doc/90-%E5%BD%92%E6%A1%A3/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/)。
+历史验证记录与各版本适配流水见 [`doc/references/`](./doc/references/)。
 
 ## 目录结构
 
@@ -151,7 +151,13 @@ Tests       109 passed (109)
 | `locales/` | i18n bundle |
 | `src/core-hacks-locales/` | `core-hacks` 的 exact / substring 翻译包 |
 | `tests/` | vitest 回归测试 |
-| `doc/` | 架构说明、路线图、ADR、验证记录、术语表 |
+| `PLAN.md` | 当前执行状态与接续位置（唯一正文） |
+| `doc/架构/` | 当前机制正文：三线结构、数据流、patch 边界 |
+| `doc/规格/` | 词典包键集契约（本项目的规格） |
+| `doc/references/` | 证据、验证记录与归档的历史版本适配流水 |
+| `doc/决策档案/` | ADR（难逆转决策刻碑） |
+| `doc/术语表.md`、`doc/经验笔记.md` | 术语表；可复用做法与避坑经验 |
+| `.artifacts/` | 本机原始现场（截图、抓包）；Git 忽略，不随仓库分发 |
 
 ## 兼容性
 

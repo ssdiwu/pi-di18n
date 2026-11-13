@@ -118,7 +118,7 @@ Test Files  25 passed (25)
 Tests       109 passed (109)
 ```
 
-과거 검증 기록은 [`doc/90-归档/40-版本实施方案/`](./doc/90-%E5%BD%92%E6%A1%A3/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/)을 참고하세요.
+과거 검증 기록과 버전별 대응 이력은 [`doc/references/`](./doc/references/)를 참고하세요.
 
 ## Compatibility
 

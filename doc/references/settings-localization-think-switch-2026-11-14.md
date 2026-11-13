@@ -39,9 +39,9 @@ total files: 80
 - README 四语言版兼容基线统一为 1.5.x（zh/ja/ko 原为 0.83.x）；删除英文版 `/llama` feature 引用。
 - `tests/README.md` 覆盖点表登记 `pi-15x-compat`、`core-hacks-locale-alignment`，更新 slash/settings/llama 描述。
 - `scripts/README.md` 补登记 `verify-core-hacks-locales.mjs`、`tui-smoke.py`。
-- `doc/30-路线图/路线图.md`：切片 4 标 ✅、决策 7 开关结论补 0.2.2 修订、清空已完成的 session-selector 挂账。
+- 路线图：切片 4 标 ✅、决策 7 开关结论补 0.2.2 修订、清空已完成的 session-selector 挂账（现已迁 `doc/references/roadmap-b-line-2026-11.md`，当前状态见 `PLAN.md`）。
 - `doc/术语表.md` `/lang think` 条目、`doc/决策档案/0002` 加后记（默认开修订，刻碑原文保留）。
-- `doc/40-版本实施方案/pi-1.1.0-core-hacks-i18n.md` 标注收口（实际由 0.2.2 完成）。
+- `core-hacks-anchors-pi-1.1.0.md` 标注收口（实际由 0.2.2 完成）。
 
 ## 结构重组（2026-11-14 第二批，对齐 pi-dgoal / pi-dteam 文档范式）
 

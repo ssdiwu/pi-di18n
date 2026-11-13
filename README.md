@@ -155,7 +155,7 @@ npm test
 npm pack --dry-run
 ```
 
-Historical verification records live under [`doc/90-归档/40-版本实施方案/`](./doc/90-%E5%BD%92%E6%A1%A3/40-%E7%89%88%E6%9C%AC%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/).83 verification snapshot and detailed records.
+Historical verification records and per-version adaptation logs live under [`doc/references/`](./doc/references/).
 
 ## Directory Layout
 
@@ -173,7 +173,13 @@ Historical verification records live under [`doc/90-归档/40-版本实施方案
 | `locales/` | i18n bundles |
 | `src/core-hacks-locales/` | Exact/substring translation packs for `core-hacks` |
 | `tests/` | vitest regression tests |
-| `doc/` | Architecture notes, roadmap, ADRs, verification records, glossary |
+| `PLAN.md` | Current execution status and resume point (single source of truth) |
+| `doc/架构/` | Current mechanism: architecture, three-line data flow, patch boundaries |
+| `doc/规格/` | Dictionary-pack key contracts (the project's spec) |
+| `doc/references/` | Evidence, verification records, and archived per-version adaptation logs |
+| `doc/决策档案/` | ADRs (hard-to-reverse decisions) |
+| `doc/术语表.md`, `doc/经验笔记.md` | Glossary; practices and pitfalls |
+| `.artifacts/` | Local raw evidence (screenshots, captures); Git-ignored, not distributed |
 
 ## Compatibility
 
