@@ -3,18 +3,19 @@
 All notable changes to `pi-di18n` are documented here.
 
 ## Unreleased
-### Changed
-- Started the Pi 1.1.0 compatibility pass: refreshed zh-CN core-hack anchors for renamed settings descriptions, login selector copy, paste/edit keybinding descriptions, resource-config scope titles, and the dynamic branch-summary interrupt hint; added footer hint anchors for resource/config submenus.
-- Removed third-party extension string packs (chucknorris, igotchu/yo) from the zh-TW core-hack table and their dynamic regex translations.
+### Fixed
+- Fixed full TUI localization silently no-oping on Pi 1.5.x: slash command descriptions now use a primary patch (the bundle keeps `BUILTIN_SLASH_COMMANDS` internal, so the provider built by `setupAutocompleteProvider` is patched in place) instead of falling back to the autocomplete-output layer.
+- Fixed `I18nRegistry.t("pi.slash.<name>.description")` not resolving for bundles that ship only the namespaced key: registered messages are now also stored under their prefix-stripped name.
+- Fixed long sentences (editor descriptions, prompt disclaimers) never matching a dictionary entry because pi-tui wraps them across screen lines: component source text is now translated before rendering.
+- Fixed extension prompt components (`ExtensionEditorComponent`, `ExtensionSelectorComponent`, `ExtensionInputComponent`), which core commands such as `/bug` open outside `showSelector`, staying in English.
 
 ### Added
-- Split settings-localization regression coverage into legacy (pi ≤0.83) and 1.1.0 anchor groups; zh-CN now asserts the 1.1.0 wording while other maintained packs keep the legacy anchors pending backfill.
-- Calibrated zh-CN anchors against Pi 1.1.0 runtime behavior: confirmed dynamic keybinding hint lines (`↑/↓ move`, `ctrl+d delete`, `filters …`) still resolve to the zh-CN anchors, updated reworded or re-keyed copy (`option+←/→ branch`, `ctrl+x copy`, `Ctrl+S save`, `✓ New session started`, `Nothing to compact (session too small)`, ` ✓ configured` / ` • not configured` login-state rows), and removed anchors whose UI elements no longer exist.
+- Localized the Pi 1.5.x additions: the `/thinking` and `/bug` slash commands (replacing the removed `/llama`), selector hint lines (`Enter to select · Esc to go back`, `Enter/Space to change`, `Type to filter`), the `/hotkeys` table rows, the settings rows added since 1.1 (cache warming, session share destination, Mermaid diagrams, quiet startup, …) and their enum values.
+- Added `tests/pi-15x-compat.test.ts` pinning the Pi 1.5.x compatibility behaviour.
 
-### Fixed
-- Fixed all interactive TUI localization silently no-oping on Pi 1.1.0: the running entry is the bundle (`dist/bundle/cli.js`), whose `InteractiveMode`/selector classes live in `dist/bundle/chunks/`, while `dist/modes/...` files are dead copies. Runtime-chunk resolution now patches the live classes (settings/model/session selectors, login dialog); slash descriptions fall back to the autocomplete-output path because the bundle keeps `BUILTIN_SLASH_COMMANDS` internal.
-- Added `scripts/tui-smoke.py` (pty-based real-TUI smoke test) as the TUI-layer regression gate; probe `matched` states alone are no longer treated as proof of localization.
-- Localized the Pi 1.1.0 settings additions (model default thinking level, TUI mode, fullscreen exit output / scrollbar / copy-on-select / wheel scrolling labels and descriptions) and translated the slash-fallback warning into Chinese.
+### Changed
+- Removed the `/llama` slash description from every locale bundle: the command no longer exists in Pi 1.5.x.
+- Consolidated the duplicated `slash.*` / `pi.slash.*` description keys in all locale bundles into the namespaced form.
 
 ## 0.2.1 - 2026-07-30
 

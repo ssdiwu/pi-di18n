@@ -232,6 +232,31 @@ function loadPiRuntimeChunk(distDir: string): Promise<any | undefined> {
 }
 
 /**
+ * Classes the bundle exposes from the same chunk as InteractiveMode. Their
+ * render() output is the last untranslated layer for prompts the core opens
+ * itself (e.g. /bug's report editor), so we patch them the same way as the
+ * selector components.
+ */
+const EXTENSION_COMPONENT_CLASSES = [
+	"ExtensionEditorComponent",
+	"ExtensionSelectorComponent",
+	"ExtensionInputComponent",
+] as const;
+
+async function getRuntimeExtensionComponentClasses(): Promise<any[]> {
+	const distDir = findPiCodingAgentDistDir();
+	if (!distDir) return [];
+	const chunk = await loadPiRuntimeChunk(distDir);
+	if (!chunk) return [];
+	const out: any[] = [];
+	for (const name of EXTENSION_COMPONENT_CLASSES) {
+		const cls = chunk[name];
+		if (cls?.prototype) out.push(cls);
+	}
+	return out;
+}
+
+/**
  * Resolve a module from the *running* Pi build. Returns `{ runtime: true, mod }`
  * with a wrapper module when the bundle chunk provides the named export, or
  * `{ runtime: false }` when the target has no bundle export (callers decide
@@ -517,6 +542,35 @@ const EXACT_WHOLE_LINE_ONLY_KEYS = new Set([
 	"configure",
 	"Always trust",
 	"Never trust",
+	// Enumeration values shown as a settings row's current value. They are
+	// short generic words that would corrupt longer sentences if replaced as
+	// substrings, so they only translate when the whole line matches.
+	"resume-hint",
+	"transcript",
+	"fullscreen",
+	"regular",
+	"always",
+	"hidden",
+	"streaming",
+	"no-tools",
+	"user-only",
+	"labeled-only",
+	"one-at-a-time",
+	"all",
+	"off",
+	"none",
+	"auto",
+	"sse",
+	"websocket",
+	"true",
+	"false",
+	"gist",
+	"radius",
+	"final",
+	"idle",
+	"tree",
+	"fork",
+	"default",
 ]);
 
 function applyExactMap(s: string, exact?: Record<string, string>): string {
@@ -1429,14 +1483,54 @@ function localizeBuiltinSlashDesc(i18n: I18nApi, name: string, currentDesc?: str
 	return currentDesc;
 }
 
-async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<{ ok: boolean; reason?: string; changed?: number }> {
+async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<{ ok: boolean; reason?: string; changed?: number; via?: string }> {
 	try {
 		const runtime = await importFromPiRuntime("core/slash-commands.js");
 		// Bundle layout keeps BUILTIN_SLASH_COMMANDS internal; the autocomplete-output
 		// fallback (setSlashDescMode("fallback")) covers slash descriptions instead.
 		const mod: any = runtime && runtime.runtime ? undefined : await importFromPiCodingAgentDist("core/slash-commands.js");
-		const list: any[] | undefined = mod?.BUILTIN_SLASH_COMMANDS;
-		if (!Array.isArray(list)) return { ok: false, reason: "BUILTIN_SLASH_COMMANDS not found" };
+		let list: any[] | undefined = mod?.BUILTIN_SLASH_COMMANDS;
+
+		// Bundle path (pi ≥ 1.1): BUILTIN_SLASH_COMMANDS is a module-internal array,
+		// but createBaseAutocompleteProvider maps it into every fresh
+		// CombinedAutocompleteProvider. Patching the provider's construction lets us
+		// translate each provider's command copies in place — the same objects the
+		// core reads, so this is a primary patch, not an output-layer rewrite.
+		if (!Array.isArray(list)) {
+			const imRuntime = await importFromPiRuntime("modes/interactive/interactive-mode.js");
+			const imMod: any = imRuntime?.runtime ? imRuntime.mod : await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js").catch(() => undefined);
+			const InteractiveMode = imMod?.InteractiveMode;
+			if (InteractiveMode?.prototype?.setupAutocompleteProvider) {
+				const state = getState();
+				if (!state.original) state.original = {};
+				if (!state.original.slashDescs) state.original.slashDescs = {};
+				patchOnce(InteractiveMode.prototype, "autocomplete_setup_slash_desc", () => {
+					const origSetup = InteractiveMode.prototype.setupAutocompleteProvider;
+					InteractiveMode.prototype.setupAutocompleteProvider = function patchedSetupAutocompleteProvider(this: any, ...args: any[]) {
+						const provider = origSetup.apply(this, args as any);
+						try {
+							const api = getCurrentI18n() ?? i18n;
+							const commands: any[] | undefined = provider?.commands;
+							if (Array.isArray(commands)) {
+								for (const cmd of commands) {
+									if (!cmd || typeof cmd.name !== "string") continue;
+									if (typeof cmd.description !== "string") continue;
+									if (!state.original.slashDescs[cmd.name]) state.original.slashDescs[cmd.name] = cmd.description;
+									const base = state.original.slashDescs[cmd.name];
+									const next = localizeBuiltinSlashDesc(api, cmd.name, base);
+									if (typeof next === "string") cmd.description = next;
+								}
+							}
+						} catch {
+							// Localization is best-effort; the provider still works untranslated.
+						}
+						return provider;
+					};
+				});
+				return { ok: true, changed: 1, via: "bundle" };
+			}
+			return { ok: false, reason: "BUILTIN_SLASH_COMMANDS not found" };
+		}
 
 		const state = getState();
 		if (!state.original) state.original = {};
@@ -1571,6 +1665,31 @@ function applySubstrMapSorted(input: string, map: Record<string, string>): strin
 		}
 	}
 	return out;
+}
+
+/**
+ * Translate the raw text of a component's child nodes before rendering.
+ *
+ * pi-tui wraps long strings into screen lines at render time, so a dictionary
+ * entry for a full sentence would never match once the sentence is broken
+ * across lines. Replacing the node's source text keeps the phrase intact and
+ * lets the normal wrapping happen on the translated string.
+ */
+function localizeSourceTextNodes(node: any, api: I18nApi): void {
+	try {
+		const children: any[] = node?.children ?? [];
+		for (const child of children) {
+			if (!child) continue;
+			if (typeof child.text === "string" && typeof child.setText === "function") {
+				const cur = child.text;
+				const next = tCore(api, cur);
+				if (next !== cur) child.setText(next);
+			}
+			if (Array.isArray(child.children)) localizeSourceTextNodes(child, api);
+		}
+	} catch {
+		// ignore
+	}
 }
 
 function localizeHotkeysMarkdown(chatContainer: any, api: I18nApi): void {
@@ -1752,8 +1871,13 @@ function patchRenderableComponent(component: any): void {
 	patchOnce(proto, `generic_render_${ctorName}`, () => {
 		const orig = proto.render;
 		proto.render = function patchedRender(width: number) {
-			const lines = orig.call(this, width);
 			const api = getCurrentI18n();
+			if (api) {
+				// Translate the un-wrapped source text first: a long phrase split
+				// across wrapped lines would never match a dictionary entry.
+				localizeSourceTextNodes(this, api);
+			}
+			const lines = orig.call(this, width);
 			if (!api || !Array.isArray(lines)) return lines;
 			return lines.map((l: any) => (typeof l === "string" ? tUiLine(api, l) : l));
 		};
@@ -1850,7 +1974,7 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 		// 直接落入 none 分支，slash 描述本地化从未对这些 locale 生效。
 		// 改为：只要是本地化 locale（非 en），就走 primary/fallback 判定。
 		if (isLocalizedLocale(i18n.getLocale())) {
-			if (res.ok && (res.changed ?? 0) > 0) setSlashDescMode("primary");
+			if (res.ok) setSlashDescMode("primary");
 			else setSlashDescMode("fallback", res.reason ?? "core patch made no changes");
 		} else {
 			setSlashDescMode("none");
@@ -2171,6 +2295,42 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 		reasons.push(`interactive-mode patch failed: ${String(e)}`);
 	}
 
+	// Extension prompt components (editor/selector/input) are opened by core
+	// commands such as /bug through their own overlay path, so neither
+	// showSelector nor showExtension* covers them. Patch their render output.
+	try {
+		const classes = await getRuntimeExtensionComponentClasses();
+		for (const cls of classes) {
+			const ctorName = cls?.name ?? "component";
+			patchOnce(cls.prototype, `extension_component_render_${ctorName}`, () => {
+				const orig = cls.prototype.render;
+				const patched = function patchedExtensionRender(this: any, width: number) {
+					const api = getCurrentI18n();
+					if (api) {
+						// Translate the un-wrapped source text first: pi-tui wraps long
+						// descriptions across lines, and a phrase split by wrapping
+						// would never match a dictionary entry.
+						localizeSourceTextNodes(this, api);
+					}
+					const lines = orig.call(this, width);
+					if (!api || !Array.isArray(lines)) return lines;
+					return lines.map((l: any) => (typeof l === "string" ? tUiLine(api, l) : l));
+				};
+				(patched as any).__pi_i18n_original__ = orig;
+				cls.prototype.render = patched;
+			});
+			patchedAny = true;
+		}
+		if (classes.length === 0) {
+			probeHook("extension.component.render", "notFound", "extension component classes not available");
+		} else {
+			probeHit("extension.component.render", true);
+		}
+	} catch (e) {
+		probeHook("extension.component.render", "unsafe", String(e));
+		reasons.push(`extension component patch failed: ${String(e)}`);
+	}
+
 	// Login dialogs are attached directly to the editor container rather than
 	// flowing through showSelector, so patch their renderer independently.
 	try {
@@ -2323,6 +2483,20 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 		}
 	} catch (e) {
 		reasons.push(`interactive-mode restore failed: ${String(e)}`);
+	}
+
+	// Extension prompt component render patches
+	try {
+		const classes = await getRuntimeExtensionComponentClasses();
+		for (const cls of classes) {
+			const orig = (cls?.prototype?.render as any)?.__pi_i18n_original__;
+			if (typeof orig === "function") {
+				cls.prototype.render = orig;
+				restoredAny = true;
+			}
+		}
+	} catch (e) {
+		reasons.push(`extension component restore failed: ${String(e)}`);
 	}
 
 	// Login dialog patch

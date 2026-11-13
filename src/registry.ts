@@ -132,6 +132,13 @@ export class I18nRegistry implements I18nApi {
 		for (const [k, v] of Object.entries(bundle.messages)) {
 			const nm = normalizeMessage(v);
 			msgMap.set(k, nm);
+			// Namespaced lookup resolves "pi.slash.X" to (ns="pi", key="slash.X"),
+			// so a bundle key carrying the namespace prefix is stored under both
+			// its literal name and the prefix-stripped name. Without the alias a
+			// bundle that only ships "pi.slash.X" is unreachable from t().
+			if (ns && k.startsWith(ns + ".") && k.length > ns.length + 1 && !msgMap.has(k.slice(ns.length + 1))) {
+				msgMap.set(k.slice(ns.length + 1), nm);
+			}
 			if (nm.kind === "simple" && nm.text !== undefined) {
 				phMap.set(k, extractPlaceholders(nm.text));
 			} else if (nm.kind === "plural" && nm.forms) {

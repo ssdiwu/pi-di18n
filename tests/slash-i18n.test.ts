@@ -32,17 +32,15 @@ describe("slash command i18n coverage", () => {
 		}
 	});
 
-	it("ships a static description for the Pi 0.81 built-in /llama extension command", () => {
+	it("no longer ships the removed /llama command (dropped from pi 1.5.x)", () => {
 		const en = loadMessages("en");
 		const zhCN = loadMessages("zh-CN");
 		const zhTW = loadMessages("zh-TW");
 		const key = "pi.slash.llama.description";
 
-		expect(en[key]).toBe("Manage llama.cpp router models");
-		expect(zhCN[key]).toBeTypeOf("string");
-		expect(zhTW[key]).toBeTypeOf("string");
-		expect(zhCN[key]).not.toBe(en[key]);
-		expect(zhTW[key]).not.toBe(en[key]);
+		expect(en[key]).toBeUndefined();
+		expect(zhCN[key]).toBeUndefined();
+		expect(zhTW[key]).toBeUndefined();
 	});
 
 	it("makes zh-CN and zh-TW slash descriptions change all pi builtin descriptions", () => {
@@ -67,14 +65,15 @@ describe("slash command autocomplete description localization", () => {
 		// Simulate the real autocomplete item shape: extension commands get a
 		// "[t]"/"[u]" source tag prefix from InteractiveMode.prefixAutocompleteDescription,
 		// and getSuggestions returns items with { value, label, description } (no name).
+		// The item's English description is not in the bundle, so the runtime cache
+		// path answers with the source text (no stale translation for unknown items).
 		const itemWithTag = {
 			value: "llama",
 			label: "llama",
 			description: "[t] Manage llama.cpp router models",
 		};
 		const out = tSlashDescForTest(i18n as any, itemWithTag);
-		expect(out).toBe("[t] 管理 llama.cpp 路由模型");
-		expect(out).not.toContain("Manage");
+		expect(out).toBe("[t] Manage llama.cpp router models");
 
 		// Builtin commands have no source tag; translation is the bare value.
 		const itemBare = {

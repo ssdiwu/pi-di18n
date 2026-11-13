@@ -171,7 +171,7 @@ See [`doc/40-版本实施方案/verification-2026-07-30.md`](./doc/40-%E7%89%88%
 
 ## Compatibility
 
-The baseline target is `@earendil-works/pi-coding-agent` 0.83.x.
+The baseline target is `@earendil-works/pi-coding-agent` 1.5.x. Earlier baselines (0.83.x, 1.1.0) are still supported: the runtime patches resolve the bundle layout Pi ships since 1.1.0 and fall back to the plain `dist/` modules for older builds.
 
 pi currently has no native full TUI i18n API. TUI localization therefore depends on best-effort `core-hacks` that patch pi internal render paths. After every pi upgrade, run:
 
