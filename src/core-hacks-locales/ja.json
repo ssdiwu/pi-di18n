@@ -392,6 +392,25 @@
     " to save": " 保存",
     "The transcript contains your messages, model output, tool calls and their results, including file contents and command output read during this session.": "トランスクリプトには、あなたのメッセージ、モデル出力、ツール呼び出しとその結果（このセッション中に読み取られたファイル内容やコマンド出力を含む）が含まれます。",
     "gist": "gist",
-    "radius": "Radius"
+    "radius": "Radius",
+    "Tool Results:": "ツール結果：",
+    "Cache Read:": "キャッシュ読み取り：",
+    "Cache Write:": "キャッシュ書き込み：",
+    "Saved decision: trusted": "保存した判断：信頼",
+    "Saved decision: untrusted": "保存した判断：信頼しない",
+    "enter select": "enter 選択",
+    "Name: All": "名前：すべて",
+    "● All": "● すべて",
+    "ctrl+←/→ branch": "ctrl+←/→ ブランチ",
+    "Use a subscription": "サブスクリプションを使う",
+    "Use an API key": "API キーを使う",
+    "subscription configured": "サブスクリプション設定済み",
+    "API key configured": "API キー設定済み",
+    " • unconfigured": " • 未設定",
+    " ✓ runtime API key": " ✓ 実行時 API キー",
+    " ✓ custom API key": " ✓ カスタム API キー",
+    " ✓ key in models.json": " ✓ models.json のキー",
+    " /llama is available in interactive mode": " /llama は対話モードでのみ利用可能",
+    " ✓ command in models.json": " ✓ models.json のコマンド"
   }
 }

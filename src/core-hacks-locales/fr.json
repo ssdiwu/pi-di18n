@@ -392,6 +392,25 @@
     " to save": " enregistrer",
     "The transcript contains your messages, model output, tool calls and their results, including file contents and command output read during this session.": "Le transcript contient vos messages, la sortie du modèle, les appels d’outil et leurs résultats, y compris les contenus de fichiers et sorties de commandes lus pendant cette session.",
     "gist": "gist",
-    "radius": "Radius"
+    "radius": "Radius",
+    "Tool Results:": "Résultats des outils :",
+    "Cache Read:": "Cache lu :",
+    "Cache Write:": "Cache écrit :",
+    "Saved decision: trusted": "Décision enregistrée : fiable",
+    "Saved decision: untrusted": "Décision enregistrée : non fiable",
+    "enter select": "entrée pour sélectionner",
+    "Name: All": "Nom : Tous",
+    "● All": "● Tous",
+    "ctrl+←/→ branch": "ctrl+←/→ branche",
+    "Use a subscription": "Utiliser un abonnement",
+    "Use an API key": "Utiliser une clé API",
+    "subscription configured": "Abonnement configuré",
+    "API key configured": "Clé API configurée",
+    " • unconfigured": " • non configuré",
+    " ✓ runtime API key": " ✓ clé API d'exécution",
+    " ✓ custom API key": " ✓ clé API personnalisée",
+    " ✓ key in models.json": " ✓ clé dans models.json",
+    " /llama is available in interactive mode": " /llama n'est disponible qu'en mode interactif",
+    " ✓ command in models.json": " ✓ commande dans models.json"
   }
 }

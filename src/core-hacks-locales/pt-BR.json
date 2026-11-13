@@ -392,6 +392,25 @@
     " to save": " salvar",
     "The transcript contains your messages, model output, tool calls and their results, including file contents and command output read during this session.": "A transcrição contém suas mensagens, a saída do modelo, as chamadas de ferramenta e seus resultados, incluindo conteúdos de arquivos e saídas de comandos lidos nesta sessão.",
     "gist": "gist",
-    "radius": "Radius"
+    "radius": "Radius",
+    "Tool Results:": "Resultados das ferramentas:",
+    "Cache Read:": "Cache lido:",
+    "Cache Write:": "Cache gravado:",
+    "Saved decision: trusted": "Decisão salva: confiável",
+    "Saved decision: untrusted": "Decisão salva: não confiável",
+    "enter select": "enter selecionar",
+    "Name: All": "Nome: Todos",
+    "● All": "● Todos",
+    "ctrl+←/→ branch": "ctrl+←/→ branch",
+    "Use a subscription": "Usar uma assinatura",
+    "Use an API key": "Usar uma chave de API",
+    "subscription configured": "Assinatura configurada",
+    "API key configured": "Chave de API configurada",
+    " • unconfigured": " • não configurado",
+    " ✓ runtime API key": " ✓ chave de API em tempo de execução",
+    " ✓ custom API key": " ✓ chave de API personalizada",
+    " ✓ key in models.json": " ✓ chave em models.json",
+    " /llama is available in interactive mode": " /llama está disponível apenas no modo interativo",
+    " ✓ command in models.json": " ✓ comando em models.json"
   }
 }

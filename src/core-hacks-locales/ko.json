@@ -392,6 +392,25 @@
     " to save": " 저장",
     "The transcript contains your messages, model output, tool calls and their results, including file contents and command output read during this session.": "대화 기록에는 사용자의 메시지, 모델 출력, 도구 호출과 그 결과(이 세션에서 읽은 파일 내용과 명령 출력 포함)가 포함됩니다.",
     "gist": "gist",
-    "radius": "Radius"
+    "radius": "Radius",
+    "Tool Results:": "도구 결과：",
+    "Cache Read:": "캐시 읽기：",
+    "Cache Write:": "캐시 쓰기：",
+    "Saved decision: trusted": "저장된 결정: 신뢰",
+    "Saved decision: untrusted": "저장된 결정: 신뢰 안 함",
+    "enter select": "enter 선택",
+    "Name: All": "이름: 전체",
+    "● All": "● 전체",
+    "ctrl+←/→ branch": "ctrl+←/→ 브랜치",
+    "Use a subscription": "구독 사용",
+    "Use an API key": "API 키 사용",
+    "subscription configured": "구독 설정됨",
+    "API key configured": "API 키 설정됨",
+    " • unconfigured": " • 미설정",
+    " ✓ runtime API key": " ✓ 런타임 API 키",
+    " ✓ custom API key": " ✓ 사용자 지정 API 키",
+    " ✓ key in models.json": " ✓ models.json의 키",
+    " /llama is available in interactive mode": " /llama 는 대화 모드에서만 사용 가능",
+    " ✓ command in models.json": " ✓ models.json의 명령"
   }
 }
