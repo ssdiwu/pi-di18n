@@ -48,7 +48,8 @@
 | [verification-2026-06-17.md](./40-版本实施方案/verification-2026-06-17.md) | 2026-06-17 自动测试、npm dry-run、真实 TUI 验证记录 |
 | [verification-2026-06-19.md](./40-版本实施方案/verification-2026-06-19.md) | 2026-06-19 `zh-CN` TUI 漏翻修复验证（selector、resume、import/export 错误提示） |
 | [verification-2026-07-30.md](./40-版本实施方案/verification-2026-07-30.md) | 2026-07-30 Pi 0.83 摘要、鉴权、登录 UI 与 think baseline 升级适配验证 |
-| [pi-1.1.0-core-hacks-i18n.md](./40-版本实施方案/pi-1.1.0-core-hacks-i18n.md) | Pi 1.1.0 core-hacks 锚点审计与分批更新（进行中：第三方清除、zh-CN 首批 9 条、剩余 51 条清单） |
+| [verification-2026-11-14.md](./40-版本实施方案/verification-2026-11-14.md) | 2026-11-14 设置值本地化三修复与 think 开关毒化修复的自动测试 + 真实 TUI 验证，含文档校准清单 |
+| [pi-1.1.0-core-hacks-i18n.md](./40-版本实施方案/pi-1.1.0-core-hacks-i18n.md) | Pi 1.1.0 core-hacks 锚点审计与分批更新（已收口，后续由 0.2.2 版本完成） |
 
 ## 文档类型约定
 

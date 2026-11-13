@@ -155,7 +155,7 @@ Tests       109 passed (109)
 
 ## 兼容性
 
-当前基线是 `@earendil-works/pi-coding-agent` 0.83.x。
+当前基线是 `@earendil-works/pi-coding-agent` 1.5.x。早期基线（0.83.x、1.1.0）仍受支持：运行时 patch 会解析 1.1.0 起的 bundle 布局，旧版本回退到普通 `dist/` 模块。
 
 pi 目前没有原生完整 TUI i18n API。因此 TUI 本地化依赖 best-effort 的 `core-hacks` patch pi 内部渲染路径。每次 pi 升级后请运行：
 

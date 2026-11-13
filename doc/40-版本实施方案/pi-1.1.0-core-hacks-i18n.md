@@ -1,4 +1,4 @@
-# Pi 1.1.0 core-hacks 本地化兼容（进行中）
+# Pi 1.1.0 core-hacks 本地化兼容（已完成，后绕由 0.2.2 版本收口）
 
 ## 背景
 
@@ -106,3 +106,7 @@ exact 表：300 → 288 条。npm test 109/109、npm pack --dry-run 通过。
 上述记录保留 `acf9902` 的首次适配判断。本轮补审确认 README 与 lockfile 仍保留 Pi 0.83 支持，因此不能只按 1.1.0 是否还显示某段文字删除语言锚点。已恢复远端基线中被删的 32 个 zh-CN 旧 exact 键，并保留本次新措辞；旧版设置描述的回归不再对 zh-CN 豁免。`tests/settings-localization.test.ts` 同时验证旧版和新版设置原文。
 
 回退通知现改用既有 `I18nRegistry` 和维护语言包，不再把简体中文发送给所有语言。提示只说明命令描述走补全回退路径，不将该状态本身表述为“功能完整”。`tests/fallback-notice.test.ts` 从 `session_start` 入口核对维护语言中的实际通知；该测试隔离 patch 和预翻译边界，不访问个人状态或外部模型。
+
+## 2026-11-14 收口
+
+本文件记录的兼容工作实际已在 0.2.2 版本完成并验证：Pi 1.5.x 全链适配、八语言词典对齐 zh-CN 键集、真实 TUI 验证（settings 值切换、`/lang debug`/`/lang probe`）。本文不再作为现行工作追踪；后续 Pi 升级兼容按 AGENTS.md 的探测要求新开版本文件。

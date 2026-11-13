@@ -122,7 +122,7 @@ Tests       109 passed (109)
 
 ## Compatibility
 
-対象 baseline は `@earendil-works/pi-coding-agent` 0.83.x です。pi にはまだ native full TUI i18n API がないため、TUI localization は best-effort の `core-hacks` に依存します。pi をアップグレードしたら `/lang debug`、`/lang probe`、`npm test`、`npm pack --dry-run` を実行してください。
+対象 baseline は `@earendil-works/pi-coding-agent` 1.5.x です。旧 baseline（0.83.x、1.1.0）も引き続きサポートします：ランタイム patch は 1.1.0 以降の bundle レイアウトを解決し、旧ビルドでは通常の `dist/` モジュールへフォールバックします。pi にはまだ native full TUI i18n API がないため、TUI localization は best-effort の `core-hacks` に依存します。pi をアップグレードしたら `/lang debug`、`/lang probe`、`npm test`、`npm pack --dry-run` を実行してください。
 
 ## License
 

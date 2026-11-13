@@ -122,7 +122,7 @@ Tests       109 passed (109)
 
 ## Compatibility
 
-기준 버전은 `@earendil-works/pi-coding-agent` 0.83.x입니다. pi에는 아직 native full TUI i18n API가 없으므로 TUI localization은 best-effort `core-hacks`에 의존합니다. pi를 업그레이드한 뒤에는 `/lang debug`, `/lang probe`, `npm test`, `npm pack --dry-run`을 실행하세요.
+기준 버전은 `@earendil-works/pi-coding-agent` 1.5.x입니다. 이전 기준(0.83.x, 1.1.0)도 계속 지원합니다: 런타임 patch는 1.1.0 이후의 bundle 레이아웃을 해석하고, 구버전 빌드는 일반 `dist/` 모듈로 폴백합니다. pi에는 아직 native full TUI i18n API가 없으므로 TUI localization은 best-effort `core-hacks`에 의존합니다. pi를 업그레이드한 뒤에는 `/lang debug`, `/lang probe`, `npm test`, `npm pack --dry-run`을 실행하세요.
 
 ## License
 

@@ -17,7 +17,7 @@
 ## Features
 
 - **Full TUI localization** — keeps `core-hacks` to runtime-patch pi internal render paths, covering UI labels, selectors, status messages, and built-in slash-command descriptions.
-- **Slash-command description fix** — ships `pi.slash.<name>.description` bundle keys for all pi 0.81 built-in slash commands (including the built-in `/llama` extension command), with `zh-CN` and `zh-TW` translations.
+- **Slash-command description fix** — ships `pi.slash.<name>.description` bundle keys for all built-in slash commands, localized in every maintained locale.
 - **Session selector translation** — covers visible `session-selector` strings such as `Resume Session`, `Threaded`, `Recent`, `Fuzzy`, and delete prompts.
 - **Non-invasive status bar** — does not replace pi's native footer/status bar, so model, cwd, token, git, and worktree information remain visible.
 - **Runtime UI description localization** — asynchronously localizes extension, prompt-template, and skill command descriptions for autocomplete UI, then caches them locally without blocking rendering.

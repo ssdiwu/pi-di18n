@@ -9,6 +9,8 @@
 | 文件 | 说明 |
 |------|------|
 | [export-think-baseline.mjs](./export-think-baseline.mjs) | 导出 pi 内置工具与参数的英文 `description` baseline，供 `src/think-locales/en.json` 更新时使用 |
+| [verify-core-hacks-locales.mjs](./verify-core-hacks-locales.mjs) | 核对六语言 pack 与 zh-CN 的键对齐；`--check` 模式供 CI/回归使用（缺失时非零退出） |
+| [tui-smoke.py](./tui-smoke.py) | 真实 TUI 冒烟验证：在 pty 中启动 pi（加载本仓库扩展），打开 `/settings`，断言核心 UI 行已本地化；仅依赖 Python 标准库 |
 
 ## 使用场景
 

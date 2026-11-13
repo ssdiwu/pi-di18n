@@ -21,3 +21,7 @@
 ## 配套决策
 
 默认关闭。改 LLM 输入是比 core-hacks（改 TUI 显示）更重的语义，让用户经 `/lang think` 显式 opt-in，理由是尊重用户对"改变 LLM 推理输入"的知情同意，而非风险。
+
+## 后记（2026-11-14）
+
+「默认关闭」已被 0.2.2 修订：全局默认改为开（`think.json` 的 `enabled` 缺省 true），会话内 on/off 只改本会话内存、不落盘（多会话互不覆盖）。本 ADR 原文保留作历史依据；现行行为以 `src/think/cache.ts` 与 CHANGELOG 0.2.2 为准。本 ADR 主体（只翻 description、不碰字段名/type/enum/值）不受影响，仍为现行约束。
