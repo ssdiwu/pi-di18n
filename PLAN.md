@@ -16,7 +16,7 @@
 
 | 项 | 状态 | 说明 |
 |---|---|---|
-| 发版 0.2.3 | 发布中 | 版本号、CHANGELOG 定版、commit、tag、push 均已完成；`npm publish` 被 npm 2FA（OTP）阻塞，待验证码后重试 |
+| 发版 0.2.3 | 已完成 | 版本号、CHANGELOG 定版、commit、tag `v0.2.3`、push、`npm publish` 均已执行（2026-11-14，registry 已可查 0.2.3） |
 | 文档结构改 Cozuo 式 | 已完成 | PLAN/架构/规格/references 分层，AGENTS.md 三节，`.artifacts/` 本机现场机制 |
 
 **已完成的路线图切片**（B 线思考语言本地化，2026-11 完成）：切片 0 预制 baseline → 切片 1 核心通路 → 切片 2 baseline 接入 → 切片 3 健壮性与可观测性 → 切片 4 测试与文档。原始切片设计与风险表见 [references/roadmap-b-line-2026-11.md](doc/references/roadmap-b-line-2026-11.md)。
