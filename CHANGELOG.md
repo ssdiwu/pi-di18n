@@ -2,7 +2,9 @@
 
 All notable changes to `pi-di18n` are documented here.
 
-## Unreleased
+## 0.2.3 - 2026-11-14
+
+Settings value localization, description token cleanup, and a fix for the poisoned global think default. Documentation restructured (plan-first layout with architecture/spec/references separation).
 
 ### Fixed
 - Fixed settings rows reverting to English after changing a value (e.g. TUI mode showing `fullscreen` again): the stored value now stays verbatim while rendering translates it, so cycling through values (Enter/Space) and submenu pre-selection keep working; previously the value was translated in place once, which also broke the first cycle (it jumped back to the first option).

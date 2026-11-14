@@ -4,3 +4,4 @@ node_modules/
 
 # 本机原始现场（截图、抓包、原始日志）：本地证据，不随仓库分发
 .artifacts/
+!.artifacts/README.md

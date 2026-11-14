@@ -4,7 +4,7 @@
 
 ## 当前状态（2026-11-14）
 
-**版本**：0.2.2（`package.json` 为唯一权威），`CHANGELOG.md` 的 `## Unreleased` 记录未发布改动。
+**版本**：0.2.3（`package.json` 为唯一权威），`CHANGELOG.md` 同步定版。
 
 **已落地**：三条本地化线全部可用——A 线 TUI（core-hacks 运行时 patch + runtime UI 描述缓存）、B 线 思考语言（baseline → 缓存 → LLM 兜底三层）、C 线 摘要（compact/tree 本地化）。兼容基线 Pi 1.5.x，词包覆盖 9 个 core-hacks 语言 + 25 个 UI locale + 12 个 think baseline 语言。
 
@@ -12,13 +12,12 @@
 
 **验证现状**：`npm test` 155/155 通过；`npm pack --dry-run` 通过；`scripts/verify-core-hacks-locales.mjs --check` 通过；`scripts/tui-smoke.py` 真实 TUI 冒烟通过。
 
-**待办**：
+**待办**：无阻塞项。下一批工作的候选见「已知未覆盖」。
 
 | 项 | 状态 | 说明 |
 |---|---|---|
-| 发版 0.2.3 | 待 507 授权 | 版本号、CHANGELOG 定版、tag `v0.2.3`、`npm publish`、push；均未执行 |
-| push 本地 6 个提交 | 待 507 授权 | 远端 `origin/main` 未同步 |
-| `/llama` 相关遗留 | 已校准 | 测试断言已改为现存命令，词包不再发布该键 |
+| 发版 0.2.3 | 已完成 | 版本号、CHANGELOG 定版、tag `v0.2.3`、`npm publish`、push 均已执行（2026-11-14） |
+| 文档结构改 Cozuo 式 | 已完成 | PLAN/架构/规格/references 分层，AGENTS.md 三节，`.artifacts/` 本机现场机制 |
 
 **已完成的路线图切片**（B 线思考语言本地化，2026-11 完成）：切片 0 预制 baseline → 切片 1 核心通路 → 切片 2 baseline 接入 → 切片 3 健壮性与可观测性 → 切片 4 测试与文档。原始切片设计与风险表见 [references/roadmap-b-line-2026-11.md](doc/references/roadmap-b-line-2026-11.md)。
 
