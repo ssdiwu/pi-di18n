@@ -1,6 +1,12 @@
 # Changelog
 
-All notable changes to `pi-di18n` are documented here.
+This project follows the basic format of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). For tagged releases, use the version from the Git tag. The tagged release is maintained by the release owner in this English `CHANGELOG.md`; daily user-perceivable changes are recorded in the Chinese `CHANGELOG-zh.md` in this repository. Both files contain user-perceivable facts only and ship in the npm package.
+
+For new releases, use headings in the format `## [x.y.z] - YYYY-MM-DD`. When an entry can be linked unambiguously to a GitHub issue, append `(#xx)`. Historical entries keep their original heading format.
+
+## [0.2.4] - 2026-11-25
+
+- Localizes command descriptions in Pi 1.6.0 autocomplete and Anthropic tool definitions added during a session.
 
 ## 0.2.3 - 2026-11-14
 
@@ -8,7 +14,7 @@ Settings value localization, description token cleanup, and a fix for the poison
 
 ### Fixed
 - Fixed settings rows reverting to English after changing a value (e.g. TUI mode showing `fullscreen` again): the stored value now stays verbatim while rendering translates it, so cycling through values (Enter/Space) and submenu pre-selection keep working; previously the value was translated in place once, which also broke the first cycle (it jumped back to the first option).
-- Fixed localized settings values being clipped when wider than the source token (`all` rendering as `全…`): value rendering no longer applies the keep-original-width guard, since the upstream component truncates values to the free width itself.
+- Fixed localized settings values being clipped when wider than the source token: value rendering no longer applies the keep-original-width guard, since the upstream component truncates values to the free width itself.
 - Replaced the English enum tokens inside translated setting descriptions (`'one-at-a-time'`, `'all'`, `'auto'`) with the localized terms in all eight maintained language packs, matching the localized value rows.
 - Fixed the global think default being poisoned on disk: any cache write serialized the session's runtime toggle into `think.json`, so a `/lang think off` in one session (or a legacy pre-0.2.2 session) permanently disabled every future session, and the session-scoped `/lang think on` could never repair it. Cache writes now persist the disk-level default, never the session toggle. Existing damaged files need a one-time manual fix: set `"enabled": true` in `~/.pi/agent/state/pi-di18n/think.json`.
 
@@ -35,7 +41,7 @@ complete dictionaries for nine maintained locales.
 ### Changed
 - Removed the `/llama` slash description from every locale bundle: the command no longer exists in Pi 1.5.x.
 - Consolidated the duplicated `slash.*` / `pi.slash.*` description keys in all locale bundles into the namespaced form.
-- Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology (供應商、工作階段、設定、串流、閒置); `en` stays empty by design.
+- Aligned `ja`, `ko`, `de`, `fr`, `es`, and `pt-BR` core-hacks dictionaries with the zh-CN key set (148 entries backfilled per language, native UI terminology), and shipped a new `src/core-hacks-locales/zh-TW.json` exact pack (378 entries) built from zh-CN with Taiwan terminology for provider, session, settings, streaming, and idle; `en` stays empty by design.
 - Updated the compatibility baseline in the README from 0.83.x to 1.5.x; earlier baselines remain supported.
 
 ### Added (from #7)
@@ -84,8 +90,8 @@ complete dictionaries for nine maintained locales.
 ## 0.1.8 - 2026-07-16
 
 ### Changed
-- **工具结果人类可读投影**：`i18n_get_locale` 增加本地化的折叠与展开文字投影；折叠使用实际快捷键提示，展开时显示解析来源、fallback（回退语言）和内置 UI 语言包，避免直接展示结构化 `details`。
-- **Pi 0.80 `/session` 本地化**：补齐工具、缓存明细、token（令牌）和缓存重计费标签，避免中文界面混杂英文统计文案。
+- **Human-readable tool-result projection**: `i18n_get_locale` now provides localized collapsed and expanded text projections; the collapsed form uses the actual keybinding hint, and the expanded form shows the resolution source, fallback (fallback locale), and built-in UI language pack instead of displaying structured `details` directly.
+- **Pi 0.80 `/session` localization**: completed translation of tool, cache-detail, token, and cache-rebilling labels so Chinese UI is no longer mixed with English statistics text.
 
 ## 0.1.7 - 2026-07-13
 

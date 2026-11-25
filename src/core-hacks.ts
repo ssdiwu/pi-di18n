@@ -1488,10 +1488,10 @@ function localizeBuiltinSlashDesc(i18n: I18nApi, name: string, currentDesc?: str
 	// Prefer bundle-key translation for *all* locales.
 	const key = `pi.slash.${name}.description`;
 	const translated = i18n.t(key);
-	if (translated !== key) return translated;
+	if (translated !== key) return `${sourceTag(currentDesc)}${translated}`;
 
 	// Fallback: legacy hardcoded map (zh-TW only). Kept for older bundles.
-	if (isZhTw(i18n.getLocale())) return ZH_TW_BUILTIN_SLASH_DESC_BY_NAME[name] ?? currentDesc;
+	if (isZhTw(i18n.getLocale()) && ZH_TW_BUILTIN_SLASH_DESC_BY_NAME[name]) return `${sourceTag(currentDesc)}${ZH_TW_BUILTIN_SLASH_DESC_BY_NAME[name]}`;
 	return currentDesc;
 }
 
@@ -1512,32 +1512,18 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 			const imRuntime = await importFromPiRuntime("modes/interactive/interactive-mode.js");
 			const imMod: any = imRuntime?.runtime ? imRuntime.mod : await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js").catch(() => undefined);
 			const InteractiveMode = imMod?.InteractiveMode;
-			if (InteractiveMode?.prototype?.setupAutocompleteProvider) {
-				const state = getState();
-				if (!state.original) state.original = {};
-				if (!state.original.slashDescs) state.original.slashDescs = {};
-				patchOnce(InteractiveMode.prototype, "autocomplete_setup_slash_desc", () => {
-					const origSetup = InteractiveMode.prototype.setupAutocompleteProvider;
-					InteractiveMode.prototype.setupAutocompleteProvider = function patchedSetupAutocompleteProvider(this: any, ...args: any[]) {
-						const provider = origSetup.apply(this, args as any);
-						try {
-							const api = getCurrentI18n() ?? i18n;
-							const commands: any[] | undefined = provider?.commands;
-							if (Array.isArray(commands)) {
-								for (const cmd of commands) {
-									if (!cmd || typeof cmd.name !== "string") continue;
-									if (typeof cmd.description !== "string") continue;
-									if (!state.original.slashDescs[cmd.name]) state.original.slashDescs[cmd.name] = cmd.description;
-									const base = state.original.slashDescs[cmd.name];
-									const next = localizeBuiltinSlashDesc(api, cmd.name, base);
-									if (typeof next === "string") cmd.description = next;
-								}
-							}
-						} catch {
-							// Localization is best-effort; the provider still works untranslated.
+			if (InteractiveMode?.prototype?.createBaseAutocompleteProvider) {
+				patchMethod(InteractiveMode.prototype, "createBaseAutocompleteProvider", (original) => function (this: any, ...args: any[]) {
+					const provider = original.apply(this, args);
+					const api = getCurrentI18n() ?? i18n;
+					try {
+						for (const cmd of provider.commands) {
+							if (typeof cmd.description === "string") cmd.description = localizeBuiltinSlashDesc(api, cmd.name, cmd.description);
 						}
-						return provider;
-					};
+					} catch (error) {
+						probeHook("autocomplete.createBase", "unsafe", String(error));
+					}
+					return provider;
 				});
 				return { ok: true, changed: 1, via: "bundle" };
 			}
@@ -1577,12 +1563,16 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 	}
 }
 
+function sourceTag(desc: string | undefined): string {
+	return desc?.match(/^\[(?:[upt]|[upt]:(?:npm|git):[^\]\r\n]+)\][ \t]*/)?.[0] ?? "";
+}
+
 function tSlashDesc(i18n: I18nApi, item: any): string | undefined {
 	const desc = item?.description as string | undefined;
 	if (!desc) return desc;
 	// Pi source tags can contain scoped npm names, digits, and git refs.
 	// Match only source-tag forms, so semantic prefixes such as [warning] stay intact.
-	const tag = desc.match(/^\[(?:[upt]|[upt]:(?:npm|git):[^\]\r\n]+)\][ \t]*/)?.[0] ?? "";
+	const tag = sourceTag(desc);
 
 	// Prefer key-based translation by command name.
 	// Command names are stable identifiers; descriptions can change across versions.
@@ -2520,6 +2510,7 @@ export async function uninstallCoreHacks(): Promise<{ ok: boolean; reason?: stri
 		const mod: any = runtime?.runtime ? runtime.mod : await importFromPiCodingAgentDist("modes/interactive/interactive-mode.js");
 		const InteractiveMode = mod?.InteractiveMode;
 		if (InteractiveMode?.prototype) {
+			restore(InteractiveMode.prototype, "createBaseAutocompleteProvider");
 			restore(InteractiveMode.prototype, "showStatus");
 			restore(InteractiveMode.prototype, "showWarning");
 			restore(InteractiveMode.prototype, "showError");

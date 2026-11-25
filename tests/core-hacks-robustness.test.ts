@@ -13,7 +13,7 @@ beforeAll(async () => {
 	process.argv.push(join(PI_DIST, "core/slash-commands.js"));
 	const i18n = new I18nRegistry({ locale: "en", fallbackLocale: "en" });
 	await installCoreHacks(i18n as any);
-	const mod: any = await import("../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js");
+	const mod: any = await import("./bundled-interactive.ts");
 	InteractiveMode = mod.InteractiveMode;
 });
 

@@ -47,5 +47,11 @@
 ## 维护规则
 
 - 机制变化 → 更新 `doc/架构/` 对应正文；词包契约变化 → 更新 `doc/规格/`；难逆转决策 → 新增 ADR 并同步索引；可复用做法 → 追加 `经验笔记.md`。
-- 用户可感知的已完成变化 → `CHANGELOG.md`；本机原始现场 → `.artifacts/`（Git 忽略）。
+- 用户可感知的已完成变化 → 日常写入本仓中文 `CHANGELOG-zh.md`，准备发布时按版本同步进英文 `CHANGELOG.md`；两份都随 npm 包发布。本机原始现场 → `.artifacts/`（Git 忽略）。
 - 当前状态与接续位置 → 只更新根 `PLAN.md`，不从 `doc/references/` 的历史记录倒推现状。
+
+## Contributing (English)
+
+- User-facing behavior and setup: [README.md](../README.md) / [README-zh.md](../README-zh.md); [README-ja.md](../README-ja.md) and [README-ko.md](../README-ko.md) are kept as well.
+- Development and verification: `npm test`, `npm pack --dry-run --ignore-scripts --json`; use `/lang debug` and `/lang probe` in a real Pi session for patch changes. See the Development section of either README.
+- Contracts: [AGENTS.md](../AGENTS.md), [架构/](./架构/), [规格/](./规格/), and [PLAN.md](../PLAN.md) for current status. Sections above are internal notes in Chinese.

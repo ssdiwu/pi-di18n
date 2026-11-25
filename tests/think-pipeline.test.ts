@@ -133,6 +133,20 @@ describe("before_provider_request 端到端替换（LLM 实际收到的 payload�
 		expect(result.tools[0].input_schema.properties.path.type).toBe("string"); // 不碰 type
 	});
 
+	it("localizes Anthropic system tool additions without changing user content", async () => {
+		const cache = loadThinkCache();
+		const i18n = makeI18n("zh-CN");
+		await commandThink("on", { ui: { notify() {} } }, i18n, cache);
+		const definition = makeAnthropicPayload().tools[0];
+		const content = [{ type: "tool_addition", tool: { type: "tool_definition", definition } }];
+		const user = { role: "user", content: structuredClone(content) };
+		const original = structuredClone(user);
+		await applyOnProviderRequest({ payload: { messages: [user, { role: "system", content }] } }, {}, i18n, cache);
+		expect(definition.description).toContain("读取");
+		expect(definition.input_schema.properties.path.description).toContain("路径");
+		expect(user).toEqual(original);
+	});
+
 	it("Google payload：functionDeclarations + parametersJsonSchema 被替换", async () => {
 		const cache = loadThinkCache();
 		const i18n = makeI18n("zh-CN");

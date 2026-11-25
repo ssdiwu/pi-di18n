@@ -159,8 +159,16 @@ export async function applyOnProviderRequest(event: any, ctx: any, i18n: I18nApi
 
 	const payload = event?.payload;
 	if (!payload || typeof payload !== "object") return undefined;
-	const tools = (payload as any).tools;
-	if (!Array.isArray(tools) || tools.length === 0) return undefined;
+	const tools = Array.isArray(payload.tools) ? [...payload.tools] : [];
+	if (Array.isArray(payload.messages)) {
+		for (const message of payload.messages) {
+			if (message?.role !== "system" || !Array.isArray(message.content)) continue;
+			for (const block of message.content) {
+				if (block?.type === "tool_addition" && block.tool?.type === "tool_definition") tools.push(block.tool.definition);
+			}
+		}
+	}
+	if (tools.length === 0) return undefined;
 
 	// 第一遍：收集每个 tool/param 的待翻译条目（三层查询 miss 的）
 	const pending: DescribeItem[] = [];

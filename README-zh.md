@@ -122,6 +122,8 @@ pi -ne -e /absolute/path/to/pi-di18n/index.ts --offline
 
 ## 开发
 
+测试命令和词典契约入口见[贡献指南](https://github.com/ssdiwu/pi-di18n/blob/HEAD/doc/README.md)。
+
 ```bash
 npm install
 npm test
@@ -135,7 +137,7 @@ Test Files  25 passed (25)
 Tests       109 passed (109)
 ```
 
-历史验证记录与各版本适配流水见 [`doc/references/`](./doc/references/)。
+历史验证记录与各版本适配流水见 [`doc/references/`](https://github.com/ssdiwu/pi-di18n/tree/HEAD/doc/references/)。
 
 ## 目录结构
 
@@ -151,6 +153,7 @@ Tests       109 passed (109)
 | `locales/` | i18n bundle |
 | `src/core-hacks-locales/` | `core-hacks` 的 exact / substring 翻译包 |
 | `tests/` | vitest 回归测试 |
+| `AGENTS.md` | 工程约定与契约边界 |
 | `PLAN.md` | 当前执行状态与接续位置（唯一正文） |
 | `doc/架构/` | 当前机制正文：三线结构、数据流、patch 边界 |
 | `doc/规格/` | 词典包键集契约（本项目的规格） |
@@ -161,7 +164,7 @@ Tests       109 passed (109)
 
 ## 兼容性
 
-当前基线是 `@earendil-works/pi-coding-agent` 1.5.x。早期基线（0.83.x、1.1.0）仍受支持：运行时 patch 会解析 1.1.0 起的 bundle 布局，旧版本回退到普通 `dist/` 模块。
+当前基线是 `@earendil-works/pi-coding-agent` 1.6.0。早期基线（0.83.x、1.1.0）仍受支持：运行时 patch 会解析 1.1.0 起的 bundle 布局，旧版本回退到普通 `dist/` 模块。
 
 pi 目前没有原生完整 TUI i18n API。因此 TUI 本地化依赖 best-effort 的 `core-hacks` patch pi 内部渲染路径。每次 pi 升级后请运行：
 
@@ -176,6 +179,10 @@ pi 目前没有原生完整 TUI i18n API。因此 TUI 本地化依赖 best-effor
 npm test
 npm pack --dry-run
 ```
+
+## 变更记录
+
+已发布版本与用户可感知变化见 [`CHANGELOG.md`](./CHANGELOG.md)。
 
 ## License
 

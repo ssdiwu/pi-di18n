@@ -11,6 +11,7 @@ describe("compaction OpenAI Responses compatibility metadata", () => {
 		const payloads: Record<string, unknown>[] = [];
 		const fetchFixture = async (input: RequestInfo | URL, init?: RequestInit) => {
 			const request = new Request(input, init);
+			expect(new URL(request.url).host).toBe("resolved.invalid");
 			const body = await request.json() as Record<string, unknown>;
 			payloads.push(body);
 			if (body.prompt_cache_options) {
@@ -39,7 +40,7 @@ describe("compaction OpenAI Responses compatibility metadata", () => {
 			compat: { supportsExplicitPromptCacheMode: true },
 		};
 		const event = { preparation: { messagesToSummarize: [], turnPrefixMessages: [], firstKeptEntryId: "entry-1", tokensBefore: 123 }, signal: new AbortController().signal };
-		const ctx = { model, modelRegistry: { getApiKeyAndHeaders: async () => ({ ok: true, apiKey: "fixture-key", headers: {} }) }, ui: { notify: vi.fn() } };
+		const ctx = { model, modelRegistry: { getApiKeyAndHeaders: async () => ({ ok: true, apiKey: "fixture-key", baseUrl: "https://resolved.invalid/v1", headers: {} }) }, ui: { notify: vi.fn() } };
 		try {
 			expect(await summarizeForCompaction(event, ctx, "zh-CN")).toEqual({ cancel: true });
 			expect(payloads).toHaveLength(1);

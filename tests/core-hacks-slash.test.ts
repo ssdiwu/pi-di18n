@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { I18nRegistry } from "../src/registry.ts";
 import { getSlashDescMode, installCoreHacks, translateUiLineForTest, uninstallCoreHacks } from "../src/core-hacks.ts";
-import { BUILTIN_SLASH_COMMANDS } from "../node_modules/@earendil-works/pi-coding-agent/dist/core/slash-commands.js";
+import { commandDescription, InteractiveMode } from "./bundled-interactive.ts";
 
 function loadBundle(locale: string) {
 	const path = join(process.cwd(), "locales", `${locale}.json`);
@@ -127,16 +127,37 @@ describe("core-hacks slash command patch", () => {
 		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
 		expect(i18n.registerBundle(loadBundle("zh-CN")).ok).toBe(true);
 
-		const compact = BUILTIN_SLASH_COMMANDS.find((cmd) => cmd.name === "compact");
-		const originalCompactDescription = compact?.description;
+		const originalCompactDescription = commandDescription("compact");
 
 		const res = await installCoreHacks(i18n);
 		expect(res.ok).toBe(true);
 		expect(getSlashDescMode().mode).toBe("primary");
-		expect(compact?.description).toBe("手动压缩会话上下文");
+		expect(commandDescription("compact")).toBe("手动压缩会话上下文");
 
 		await uninstallCoreHacks();
-		expect(compact?.description).toBe(originalCompactDescription);
+		expect(commandDescription("compact")).toBe(originalCompactDescription);
+	});
+
+	it("preserves extension and template source tags in the real Pi provider", async () => {
+		await uninstallCoreHacks();
+		const i18n = new I18nRegistry({ locale: "zh-CN", fallbackLocale: "en" });
+		i18n.registerBundle(loadBundle("en"));
+		i18n.registerBundle(loadBundle("zh-CN"));
+		await installCoreHacks(i18n);
+		try {
+			const mode = Object.create(InteractiveMode.prototype);
+			mode.runtimeHost = { session: {
+				promptTemplates: [{ name: "lang", description: "Template description", sourceInfo: { source: "local", scope: "project" } }],
+				extensionRunner: { getRegisteredCommands: () => [{ invocationName: "lang", description: "Switch UI language (LTR)", sourceInfo: { source: "npm:pi-di18n", scope: "user" } }] },
+				settingsManager: { getEnableSkillCommands: () => false }, sessionManager: { getCwd: () => process.cwd() },
+			} };
+			mode.skillCommands = new Map();
+			const provider = mode.createBaseAutocompleteProvider();
+			const descriptions = provider.commands.filter((cmd: any) => cmd.name === "lang").map((cmd: any) => cmd.description);
+			expect(descriptions).toEqual(["[p] 切换界面语言（仅支持 LTR）", "[u:npm:pi-di18n] 切换界面语言（仅支持 LTR）"]);
+		} finally {
+			await uninstallCoreHacks();
+		}
 	});
 
 	it("reports primary mode on repeated installCoreHacks in the same locale (reload scenario)", async () => {
@@ -149,13 +170,12 @@ describe("core-hacks slash command patch", () => {
 		expect(i18n.registerBundle(loadBundle("en")).ok).toBe(true);
 		expect(i18n.registerBundle(loadBundle("zh-CN")).ok).toBe(true);
 
-		const compact = BUILTIN_SLASH_COMMANDS.find((cmd) => cmd.name === "compact");
 
 		// First install: cold start — stores English originals, translates to zh-CN.
 		const first = await installCoreHacks(i18n);
 		expect(first.ok).toBe(true);
 		expect(getSlashDescMode().mode).toBe("primary");
-		expect(compact?.description).toBe("手动压缩会话上下文");
+		expect(commandDescription("compact")).toBe("手动压缩会话上下文");
 
 		// Second install: same-process reload (e.g. /lang picked same locale, /reload).
 		// cmd.description is already zh-CN; state.original still holds the English
@@ -163,7 +183,7 @@ describe("core-hacks slash command patch", () => {
 		const second = await installCoreHacks(i18n);
 		expect(second.ok).toBe(true);
 		expect(getSlashDescMode().mode).toBe("primary");
-		expect(compact?.description).toBe("手动压缩会话上下文");
+		expect(commandDescription("compact")).toBe("手动压缩会话上下文");
 
 		await uninstallCoreHacks();
 	});

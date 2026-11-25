@@ -100,7 +100,8 @@ export function serializeSessionEntries(entries: any[]): string {
 type ResolvedModelAuth = {
 	resolved: boolean;
 	apiKey?: string;
-	headers?: Record<string, string>;
+	headers?: Record<string, string | null>;
+	baseUrl?: string;
 	env?: Record<string, string>;
 };
 
@@ -113,6 +114,7 @@ async function resolveModelAuth(ctx: any, model: any): Promise<ResolvedModelAuth
 				resolved: true,
 				apiKey: auth.apiKey,
 				headers: auth.headers,
+				baseUrl: auth.baseUrl,
 				env: auth.env,
 			};
 		}
@@ -171,7 +173,7 @@ export function compactionModelInfo(model: any): CompactionModelInfo {
 
 export function resolveCompactionModel(
 	currentModel: any,
-	override: string,
+	override: string | undefined,
 	resolve: (provider: string, modelId: string) => any = getModel,
 ): { model?: any; info: CompactionModelInfo; error?: string } {
 	if (!currentModel) return { info: { provider: "unknown", model: "none" }, error: "No active model" };
@@ -314,7 +316,7 @@ async function runSummary(ctx: any, prompt: string, signal?: AbortSignal): Promi
 
 	try {
 		const response = await retryAssistantCall(
-			() => completeSummaryAttempt(model, prompt, requestOptions),
+			() => completeSummaryAttempt(auth.baseUrl ? { ...model, baseUrl: auth.baseUrl } : model, prompt, requestOptions),
 			SUMMARY_RETRY_POLICY,
 			signal,
 		);

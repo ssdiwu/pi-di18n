@@ -25,6 +25,7 @@ describe("runtime think translation auth", () => {
 			modelRegistry: {
 				getApiKeyAndHeaders: vi.fn().mockResolvedValue({
 					ok: true,
+					baseUrl: "https://resolved.invalid",
 					headers: { Authorization: "Bearer test-token" },
 					env: { PROVIDER_TOKEN: "test-token" },
 				}),
@@ -35,6 +36,7 @@ describe("runtime think translation auth", () => {
 
 		expect(result.get("custom")).toBe("已翻译");
 		expect(completeMock).toHaveBeenCalledTimes(1);
+		expect(completeMock.mock.calls[0]?.[0].baseUrl).toBe("https://resolved.invalid");
 		expect(completeMock.mock.calls[0]?.[2]).toMatchObject({
 			headers: { Authorization: "Bearer test-token" },
 			env: { PROVIDER_TOKEN: "test-token" },

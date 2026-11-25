@@ -19,7 +19,7 @@ beforeAll(async () => {
 	i18n.registerBundle(loadBundle("en"));
 	i18n.registerBundle(loadBundle("zh-CN"));
 	await installCoreHacks(i18n as any);
-	const mod: any = await import("../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js");
+	const mod: any = await import("./bundled-interactive.ts");
 	InteractiveMode = mod.InteractiveMode;
 });
 
@@ -41,6 +41,8 @@ describe("Pi 0.81 /llama showExtensionCustom localization", () => {
 		// Patched showExtensionCustom wraps the factory and patches the returned component's
 		// render so localized lines reach the user without touching the business Promise.
 		const mode: any = Object.create(InteractiveMode.prototype);
+		mode.extensionDialogs = [];
+		mode.programStatus = { setBlocked() {} };
 		mode.editor = { getText: () => "", setText: () => {} };
 		mode.editorContainer = { clear() {}, addChild() {} };
 		mode.ui = { setFocus() {}, requestRender() {}, showOverlay() { return {}; }, hideOverlay() {} };
@@ -57,6 +59,8 @@ describe("Pi 0.81 /llama showExtensionCustom localization", () => {
 
 	it("degrades to original lines when line localization throws, never swallowing render output", async () => {
 		const mode: any = Object.create(InteractiveMode.prototype);
+		mode.extensionDialogs = [];
+		mode.programStatus = { setBlocked() {} };
 		mode.editor = { getText: () => "", setText: () => {} };
 		mode.editorContainer = { clear() {}, addChild() {} };
 		mode.ui = { setFocus() {}, requestRender() {}, showOverlay() { return {}; }, hideOverlay() {} };

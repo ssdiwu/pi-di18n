@@ -84,8 +84,8 @@
     "pi.slash.model.description": "选择模型（打开选择器界面）",
     "pi.slash.scoped-models.description": "启用/停用用于 Ctrl+P 循环切换的模型",
     "pi.slash.export.description": "导出会话（默认 HTML，或指定路径：.html/.jsonl）",
-    "pi.slash.import.description": "从 JSONL 文件导入并恢复会话",
-    "pi.slash.share.description": "以 GitHub secret gist 分享会话",
+    "pi.slash.import.description": "导入 JSONL 会话并保留其 ID 和工作目录",
+    "pi.slash.share.description": "通过 Radius 工件或 GitHub gist 分享会话",
     "pi.slash.copy.description": "复制上一条助手消息到剪贴板",
     "pi.slash.name.description": "设置会话显示名称",
     "pi.slash.session.description": "显示会话信息与统计",
@@ -102,8 +102,8 @@
     "pi.slash.resume.description": "恢复另一个会话",
     "pi.slash.reload.description": "重新加载键位、扩展、技能、提示词、主题和上下文文件",
     "pi.slash.quit.description": "退出 pi",
-    "pi.slash.thinking.description": "<等级> — 设置思考等级",
-    "pi.slash.bug.description": "<描述> — 向 Pi 开发者报告缺陷",
+    "pi.slash.thinking.description": "设置思考等级",
+    "pi.slash.bug.description": "向 Pi 开发者报告缺陷",
     "pi.slash.lang.description": "切换界面语言（仅支持 LTR）"
   }
 }

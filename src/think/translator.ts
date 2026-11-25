@@ -39,7 +39,8 @@ function languageForLocale(locale: string): string {
 type ResolvedModelAuth = {
 	resolved: boolean;
 	apiKey?: string;
-	headers?: Record<string, string>;
+	headers?: Record<string, string | null>;
+	baseUrl?: string;
 	env?: Record<string, string>;
 };
 
@@ -52,6 +53,7 @@ async function resolveModelAuth(ctx: any, model: any): Promise<ResolvedModelAuth
 				resolved: true,
 				apiKey: auth.apiKey,
 				headers: auth.headers,
+				baseUrl: auth.baseUrl,
 				env: auth.env,
 			};
 		}
@@ -82,7 +84,7 @@ const SYSTEM_PROMPT =
 
 /** 按 en 字符数分批，避免单次输出过长。 */
 function chunkItems(items: TranslationInput[], maxCharsPerBatch = 6000): TranslationInput[][] {
-	const chunks: DescribeItem[][] = [];
+	const chunks: TranslationInput[][] = [];
 	let cur: TranslationInput[] = [];
 	let curLen = 0;
 	for (const it of items) {
@@ -136,7 +138,7 @@ async function translateChunk(
 
 	try {
 		const response = await complete(
-			model,
+			auth.baseUrl ? { ...model, baseUrl: auth.baseUrl } : model,
 			{
 				systemPrompt: SYSTEM_PROMPT,
 				messages: [{ role: "user", content: [{ type: "text", text: userPrompt }], timestamp: Date.now() }],

@@ -18,7 +18,7 @@ function requireJson(path: string) {
 async function setup(locale = "zh-CN") {
 	await uninstallCoreHacks();
 	const { InteractiveMode } = await import(
-		"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+		"./bundled-interactive.ts"
 	);
 	// Keep the Pi 0.81 notice contract deterministic without constructing real TUI theme/Text state.
 	(InteractiveMode.prototype as any).addCacheMissNotice = function (this: any, miss: any) {
@@ -50,7 +50,7 @@ describe("cache miss notice core patch", () => {
 	it("localizes the dynamic model-switch notice while preserving runtime values", async () => {
 		await setup("zh-CN");
 		const { InteractiveMode } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+			"./bundled-interactive.ts"
 		);
 		const children: any[] = [];
 		const mode = { chatContainer: { children, addChild(child: any) { children.push(child); } } };
@@ -74,7 +74,7 @@ describe("cache miss notice core patch", () => {
 	it("localizes the idle notice and keeps the upstream threshold behavior", async () => {
 		await setup("ja");
 		const { InteractiveMode } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+			"./bundled-interactive.ts"
 		);
 		const children: any[] = [];
 		const mode = { chatContainer: { children, addChild(child: any) { children.push(child); } } };
@@ -96,7 +96,7 @@ describe("cache miss notice core patch", () => {
 	it("calls the upstream method even when the children snapshot getter fails", async () => {
 		await setup("zh-CN");
 		const { InteractiveMode } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+			"./bundled-interactive.ts"
 		);
 		const children: any[] = [];
 		let reads = 0;
@@ -124,7 +124,7 @@ describe("cache miss notice core patch", () => {
 	it("keeps the upstream notice when locale template formatting throws", async () => {
 		const i18n = await setup("zh-CN");
 		const { InteractiveMode } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+			"./bundled-interactive.ts"
 		);
 		const children: any[] = [];
 		const mode: any = {
@@ -147,7 +147,7 @@ describe("cache miss notice core patch", () => {
 	it("keeps the upstream notice and does not throw when setText fails", async () => {
 		await setup("zh-CN");
 		const { InteractiveMode } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/interactive-mode.js"
+			"./bundled-interactive.ts"
 		);
 		const children: any[] = [];
 		const mode: any = {

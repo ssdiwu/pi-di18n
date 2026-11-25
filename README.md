@@ -142,6 +142,8 @@ Safety boundary: only prose `description` strings are translated. Tool names, pa
 
 ## Development
 
+See the [contributor guide](https://github.com/ssdiwu/pi-di18n/blob/HEAD/doc/README.md#contributing-english) for the test commands and dictionary contracts.
+
 ```bash
 npm install
 npm test
@@ -155,7 +157,7 @@ npm test
 npm pack --dry-run
 ```
 
-Historical verification records and per-version adaptation logs live under [`doc/references/`](./doc/references/).
+Historical verification records and per-version adaptation logs live under [`doc/references/`](https://github.com/ssdiwu/pi-di18n/tree/HEAD/doc/references/).
 
 ## Directory Layout
 
@@ -173,6 +175,7 @@ Historical verification records and per-version adaptation logs live under [`doc
 | `locales/` | i18n bundles |
 | `src/core-hacks-locales/` | Exact/substring translation packs for `core-hacks` |
 | `tests/` | vitest regression tests |
+| `AGENTS.md` | Engineering conventions and contract boundaries |
 | `PLAN.md` | Current execution status and resume point (single source of truth) |
 | `doc/架构/` | Current mechanism: architecture, three-line data flow, patch boundaries |
 | `doc/规格/` | Dictionary-pack key contracts (the project's spec) |
@@ -183,7 +186,7 @@ Historical verification records and per-version adaptation logs live under [`doc
 
 ## Compatibility
 
-The baseline target is `@earendil-works/pi-coding-agent` 1.5.x. Earlier baselines (0.83.x, 1.1.0) are still supported: the runtime patches resolve the bundle layout Pi ships since 1.1.0 and fall back to the plain `dist/` modules for older builds.
+The baseline target is `@earendil-works/pi-coding-agent` 1.6.0. Earlier baselines (0.83.x, 1.1.0) are still supported: the runtime patches resolve the bundle layout Pi ships since 1.1.0 and fall back to the plain `dist/` modules for older builds.
 
 pi currently has no native full TUI i18n API. TUI localization therefore depends on best-effort `core-hacks` that patch pi internal render paths. After every pi upgrade, run:
 

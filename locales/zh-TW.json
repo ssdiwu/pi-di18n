@@ -84,8 +84,8 @@
     "pi.slash.model.description": "選擇模型（開啟選擇器介面）",
     "pi.slash.scoped-models.description": "啟用/停用用於 Ctrl+P 循環切換的模型",
     "pi.slash.export.description": "匯出工作階段（預設 HTML，或指定路徑：.html/.jsonl）",
-    "pi.slash.import.description": "從 JSONL 檔案匯入並恢復工作階段",
-    "pi.slash.share.description": "以 GitHub secret gist 分享工作階段",
+    "pi.slash.import.description": "匯入 JSONL 工作階段並保留其 ID 和工作目錄",
+    "pi.slash.share.description": "透過 Radius 成品或 GitHub gist 分享工作階段",
     "pi.slash.copy.description": "複製上一則助理訊息到剪貼簿",
     "pi.slash.name.description": "設定工作階段顯示名稱",
     "pi.slash.session.description": "顯示工作階段資訊與統計",
@@ -102,8 +102,8 @@
     "pi.slash.resume.description": "恢復其他工作階段",
     "pi.slash.reload.description": "重新載入鍵位、擴充、技能、提示、主題和上下文檔案",
     "pi.slash.quit.description": "結束 pi",
-    "pi.slash.thinking.description": "<等級> — 設定思考等級",
-    "pi.slash.bug.description": "<描述> — 向 Pi 開發者回報錯誤",
+    "pi.slash.thinking.description": "設定思考等級",
+    "pi.slash.bug.description": "向 Pi 開發者回報錯誤",
     "pi.slash.lang.description": "切換介面語言（僅支援 LTR）"
   }
 }

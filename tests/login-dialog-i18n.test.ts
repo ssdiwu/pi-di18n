@@ -22,10 +22,10 @@ describe("Pi provider login dialog localization", () => {
 	it("localizes dynamically-added OpenRouter login instructions", () => {
 		const proto = {
 			render() {
-				return [
+				return Object.freeze([
 					"Login to OpenRouter",
 					"Complete sign-in in your browser, or paste the authorization code / redirect URL here:",
-				];
+				]);
 			},
 		};
 		patchLoginDialogRenderForTest(proto, zhCN);
@@ -53,7 +53,7 @@ describe("Pi provider login dialog localization", () => {
 	it("restores the real login renderer when core hacks are uninstalled", async () => {
 		await uninstallCoreHacks();
 		const { LoginDialogComponent } = await import(
-			"../node_modules/@earendil-works/pi-coding-agent/dist/modes/interactive/components/login-dialog.js"
+			"./bundled-interactive.ts"
 		);
 		const original = LoginDialogComponent.prototype.render;
 
