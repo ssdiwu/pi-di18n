@@ -461,8 +461,9 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 			}
 		}
 
+		if (!locale) return;
 		const nextLocale = canonicalizeLocaleTag(locale);
-		const prevLocale = i18n.getLocale();
+		const prevLocale = i18n.getLocale() ?? "en";
 		if (canonicalizeLocaleTag(prevLocale) === nextLocale) {
 			ctx.ui?.notify?.(i18n.t("pi.language.alreadySet", { locale: prevLocale }), "info");
 			return;
@@ -614,7 +615,7 @@ export default function i18nExtension(pi: ExtensionAPI): void {
 	async function showDemoChat(ctx: any): Promise<void> {
 		if (!ctx?.hasUI) return;
 
-		await ctx.ui.custom<void>((_tui: any, theme: any, _kb: any, done: (v: void) => void) => {
+		await ctx.ui.custom((_tui: any, theme: any, _kb: any, done: (v: void) => void) => {
 			const c = new Container();
 			c.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
 			c.addChild(new Text(theme.fg("accent", theme.bold(i18n.t("pi.demo.chat.title"))), 1, 0));

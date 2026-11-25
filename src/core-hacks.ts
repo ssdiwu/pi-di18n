@@ -766,7 +766,6 @@ function tCoreLegacyZhTw(i18n: I18nApi, msg: string): string {
 		"assistant: ": "助理：",
 		"(aborted)": "（已中止）",
 		"(no content)": "（無內容）",
-		"[branch summary]: ": "[分支摘要]：",
 		"[title: ": "[標題：",
 		"  Session Tree": "  工作階段樹",
 		"  No user messages found": "  找不到使用者訊息",
@@ -1531,11 +1530,11 @@ async function patchCoreBuiltinSlashCommandDescriptions(i18n: I18nApi): Promise<
 		}
 
 		const state = getState();
-		if (!state.original) state.original = {};
-		if (!state.original.slashDescs) {
-			state.original.slashDescs = {};
+		const original = state.original ?? (state.original = {});
+		if (!original.slashDescs) {
+			const slashDescs = original.slashDescs ?? (original.slashDescs = {});
 			for (const cmd of list) {
-				if (cmd && typeof cmd.name === "string") state.original.slashDescs[cmd.name] = cmd.description;
+				if (cmd && typeof cmd.name === "string") slashDescs[cmd.name] = cmd.description;
 			}
 		}
 
@@ -2397,9 +2396,10 @@ export async function installCoreHacks(i18n: I18nApi): Promise<{ ok: boolean; re
 	// Patch Loader updates (covers compaction loader labels and similar runtime messages)
 	// -------------------------------------------------------------------------
 	try {
-		if (Loader?.prototype?.updateDisplay) {
+		const loaderPrototype = Loader?.prototype as any;
+		if (typeof loaderPrototype?.updateDisplay === "function") {
 			patchedAny = true;
-			patchMethod(Loader.prototype, "updateDisplay", (orig) =>
+			patchMethod(loaderPrototype, "updateDisplay", (orig) =>
 				function patchedUpdateDisplay(this: any) {
 					const api = getCurrentI18n();
 					if (!api || typeof this?.message !== "string") return orig.call(this);
